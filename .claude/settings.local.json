@@ -1,0 +1,17 @@
+{
+  "permissions": {
+    "allow": [
+      "mcp__claude_ai_Google_Drive__read_file_content",
+      "Read(//Users/morrisanderson/Projects-clean/docside/**)",
+      "Read(//Users/morrisanderson/Projects-clean/docside-experience/**)",
+      "Bash(git init *)",
+      "Bash(git remote *)",
+      "Bash(git fetch *)",
+      "Bash(git checkout *)",
+      "Bash(git ls-remote *)",
+      "Bash(git add *)",
+      "Bash(git commit -m 'Phase 0: repo foundation — CLAUDE.md, README, vision brief, build plan *)",
+      "Bash(git push *)"
+    ]
+  }
+}
