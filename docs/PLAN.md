@@ -39,7 +39,9 @@ Next.js 15 App Router app, deployed as Vercel project `docside-first-look` → `
 
 ## Phase 4 — Seed data + preview mode in the main app
 
-Synthetic Oakview Drive dataset run through the real extraction pipeline; signed preview tokens; sandbox guarantees (nothing an agent does touches real data; "nothing will actually be sent" on Mission 4).
+Synthetic Oakview Drive dataset run through the real extraction pipeline; preview agents + `generateLink` session handoff per `docs/ARCHITECTURE-VERIFICATION.md`; sandbox guarantees (nothing an agent does touches real data; "nothing will actually be sent" on Mission 4).
+
+**Prerequisite (founder decision 2026-08-03, BRIEF §13 Q8):** `offer_summaries` generation + seller-view narrative rendering implemented in `docside` before Cohort 1.
 
 ## Phase 5 — Telemetry + feedback capture
 

@@ -79,6 +79,8 @@ The BRIEF §10 security acceptance tests remain the release gate; add one case: 
 
 ## 6. Gaps requiring a founder decision (new — surfaced by verification)
 
+> **Both decided by Morris, 2026-08-03:** (1) soften Mission 1 to the excerpt experience — no document pane in v1 (BRIEF v1.2 §2/§6 updated accordingly); (2) implement `offer_summaries` generation + seller-view narrative rendering in `docside` before Cohort 1 (item 7 in §7 below; Phase 4 prerequisite in `docs/PLAN.md`).
+
 1. **The click-to-source pane does not exist yet.** The verify workspace is built and shows every field with dual confidence, `match_kind`, and citations — but citations render as text (page/clause/excerpt). There is no PDF viewer component, no `createSignedUrl` call anywhere, and the `pages` image bucket is unused. The Mission 1 acceptance criterion ("contract pane scrolls to and highlights the cited paragraph within 400ms") — **the moment to protect** — exceeds the app as built. Options: (a) build the source-document pane in `docside` before Cohort 1 (it is the central trust moment; the mockup spec exists), or (b) soften Mission 1 to the citation-excerpt experience that exists today. This is the single most consequential open item.
 2. **Seller-view narrative summaries don't render.** Nothing writes `offer_summaries`, so the share page shows tiers/cards/attestation but no plain-English "What this means" sections. Mission 4 asks agents to critique "the summary you might share" — as built, the critique target is thinner than the worked specimen. Options: implement summary generation before Cohort 1, or run Mission 4 against the share view as-built and treat "what's missing" as research signal.
 
@@ -92,3 +94,4 @@ All of it still covered by the recorded §17 sentence (*"Docside gains a preview
 4. Clone routine (the §1 recipe; modeled on `tests/e2e/helpers.ts`).
 5. Mission chrome (banner in `(app)/layout.tsx` + `/share/[token]` preview banner) + the telemetry beacon helper posting to the shell's ingestion route.
 6. TTL reaper for preview agents/rows/storage (net-new; no existing cron to extend).
+7. **`offer_summaries` generation + seller-view narrative rendering** (founder decision 2026-08-03 — Cohort 1 prerequisite; product work that benefits real users too, so it should clear docside's §17 test on its own merits, independent of First Look).

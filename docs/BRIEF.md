@@ -1,7 +1,7 @@
 # Docside First Look — Product Brief
 
-> **Version:** v1.1 · 2026-08-03
-> **Status:** Ready for founder review. This document defines every screen, interaction, data point, feedback question, and acceptance criterion for the Docside First Look experience, plus the Phase 2 architecture decisions (§10).
+> **Version:** v1.2 · 2026-08-03 — Mission 1 softened to the citation-excerpt experience and seller summaries confirmed as a Cohort 1 prerequisite (founder decisions, 2026-08-03; §13 Q7–Q8). Architecture mechanics verified in `docs/ARCHITECTURE-VERIFICATION.md`.
+> **Status:** Founder-reviewed. This document defines every screen, interaction, data point, feedback question, and acceptance criterion for the Docside First Look experience, plus the Phase 2 architecture decisions (§10).
 >
 > `docs/VISION.md` is the founding intent; this brief is the buildable spec. Where the two conflict, the Discrepancy Register (§11) records the ruling and why.
 
@@ -48,6 +48,8 @@ The build is reviewed against this checklist. Each item is a hard rule inherited
 > The agent sees an important offer term, questions it, clicks it, and Docside immediately takes them to the exact place in the purchase agreement that supports it.
 
 **Summary → extracted value → original source language.** Every design decision in this brief is subordinate to making that moment land. If a scope cut is ever required, cut anything before cutting this.
+
+*v1 delivery note (founder decision, 2026-08-03 — §13 Q7):* in First Look v1, "the exact place" is delivered as the **cited excerpt** — page, clause reference, and the verbatim contract language — not in-document scroll-and-highlight navigation. The trust chain (summary → value → source language) is intact; the live document pane is the mockup's target direction for a later pass.
 
 ---
 
@@ -264,7 +266,7 @@ Three choices: **Try Docside with my own documents** · **Join the next feedback
 
 ## §6 — The four missions
 
-Missions run inside the real app (screen 5.5). Mission-to-mockup mapping: **Missions 1–2 → `verify-workspace-mockup.html`** (icon rail, context bar, 40/60 split — source contract left, "the reading" right; `§→¶` citations; click-to-scroll-and-highlight with "the source" pin; "Needs your attention" queue; High-stakes tags; confirm/corrected/unreadable resolve modes; inline edit; share gate; mobile "In the contract" bottom sheet). **Mission 3 → `comparison-view-mockup-v3.html`** (real table semantics; ranking-basis line; lexicographic Customize reorder — no sliders; per-cell provenance handles, citation or dashed system-formula; "Why this position"; pairwise delta popover; "Order withheld"/"Near-tie" bands; five-string absence grammar; "Other terms — not ranked, quoted verbatim"). **Mission 4 → seller mode** (agent chrome removed from the DOM; no scores/stars/totals/"best offer" anywhere).
+Missions run inside the real app (screen 5.5). Mission-to-mockup mapping: **Missions 1–2 → `verify-workspace-mockup.html`** (icon rail, context bar, 40/60 split — source contract left, "the reading" right; `§→¶` citations; click-to-scroll-and-highlight with "the source" pin; "Needs your attention" queue; High-stakes tags; confirm/corrected/unreadable resolve modes; inline edit; share gate; mobile "In the contract" bottom sheet). *Softening (founder decision, 2026-08-03 — §13 Q7): the mockup's live document pane / scroll-and-highlight behaviors are **not** in v1 scope; v1 ships the citation-excerpt experience the app has today (page + clause + verbatim excerpt per field). The rest of the verify-workspace vocabulary (queues, tags, resolve modes, share gate) applies as built.* **Mission 3 → `comparison-view-mockup-v3.html`** (real table semantics; ranking-basis line; lexicographic Customize reorder — no sliders; per-cell provenance handles, citation or dashed system-formula; "Why this position"; pairwise delta popover; "Order withheld"/"Near-tie" bands; five-string absence grammar; "Other terms — not ranked, quoted verbatim"). **Mission 4 → seller mode** (agent chrome removed from the DOM; no scores/stars/totals/"best offer" anywhere).
 
 Fixture values cited below are canonical per Appendix A.
 
@@ -284,10 +286,10 @@ Okafor is chosen deliberately: all-cash and cleanly extracted — the purest fir
 **Telemetry.** `mission_started/completed(1)`, `source_link_opened` per citation click, `hint_requested`, `micro_question_answered(1, value, comment)`.
 
 **Acceptance criteria.**
-- `[UX]` GIVEN the Okafor reading on screen, WHEN the participant clicks the purchase-price row's `§→¶` citation, THEN the contract pane scrolls to and highlights the cited paragraph and reveals the "the source" pin badge, highlight visible within 400 ms of the click.
+- `[UX]` GIVEN the Okafor reading on screen, WHEN the participant clicks the purchase-price row's `§→¶` citation, THEN the cited source excerpt — page, clause reference, and the verbatim contract language — is revealed within 400 ms of the click. *(v1 excerpt experience per §13 Q7; no document pane or scroll-to-paragraph.)*
 - `[Telemetry]` GIVEN that click, THEN exactly one `source_link_opened` event with `{mission: 1, field: "purchase_price", ref: "§3A → ¶5"}` and a server timestamp.
 - `[Guardrail]` GIVEN any extracted-field row, THEN it renders either a `§→¶` citation or exactly one of the five absence strings, verbatim — no value without provenance; absence strings never collapsed or paraphrased.
-- `[UX]` GIVEN a viewport under 768px, WHEN a citation is tapped, THEN the "In the contract" bottom sheet opens scrolled to the cited paragraph; the split pane never renders on mobile.
+- `[UX]` GIVEN a viewport under 768px, WHEN a citation is tapped, THEN the same excerpt (page + clause + verbatim language) is fully readable — no truncation, no horizontal scroll.
 - `[Content]` GIVEN the Okafor financing detail fields, THEN they render "Not applicable — all-cash purchase" — never blank, never invented.
 
 ### Mission 2 — Verify what Docside found
@@ -295,7 +297,7 @@ Okafor is chosen deliberately: all-cash and cleanly extracted — the purest fir
 **Task statement:**
 > Review the highlighted terms on the **Reyes** offer and confirm whether Docside read them correctly.
 
-The Reyes offer ships with two planted verification moments (Appendix A): the purchase price is flagged low-confidence in "Needs your attention" — Docside's read is **$1,260,000** while the source paragraph states **$1,250,000** (the participant can catch and correct it) — and the **$5,000 seller credit** is flagged **High stakes** for confirmation. Four actions are available on any flagged field: **Confirm** · **Correct** · **Mark for further review** · **Open the source page.**
+The Reyes offer ships with two planted verification moments (Appendix A): the purchase price is flagged low-confidence in "Needs your attention" — Docside's read is **$1,260,000** while the source paragraph states **$1,250,000** (the participant can catch and correct it) — and the **$5,000 seller credit** is flagged **High stakes** for confirmation. Four actions are available on any flagged field: **Confirm** · **Correct** · **Mark for further review** · **Inspect the source language** (the cited excerpt — v1 excerpt experience per §13 Q7).
 
 **Resolution vocabulary (canonical).** There are three *terminal* resolution states, matching the verify-workspace mockup: `confirm` (value accepted), `corrected` (value replaced; original read travels), `unreadable` (marked as unreadable; renders the absence string). **Mark for further review is not a fourth terminal state** — it is a non-terminal flag (`review`) that keeps the field open: the attention card stays in the queue, and a high-stakes field marked for review keeps the share gate engaged. The share gate releases only when every high-stakes field reaches a terminal state.
 
@@ -548,8 +550,8 @@ Additions implied by the design reference (enforced by the mockup family's own s
 4. **Docside schema/JWT mechanics.** ✅ **ANSWERED (verification pass, 2026-08-03):** see `docs/ARCHITECTURE-VERIFICATION.md`. AD-1 confirmed with one amendment (the tenancy unit is a preview *agent* — a real `auth.users` row — so existing RLS works unchanged; `agents.is_preview` flag); AD-3 amended (real GoTrue sessions via `admin.generateLink` token-hash exchange, not hand-minted JWTs); AD-2/AD-4 confirmed as written. Two new gaps for founder decision: the click-to-source pane and seller narrative summaries do not exist in the app yet (see that doc's §6, and Q7–Q8 below).
 5. **Participant card.** Does v1 generate a downloadable card image, or is the on-screen designation enough?
 6. **Session recording.** Revisit after Cohort 1 — only with explicit prior consent if ever added.
-7. **Click-to-source pane (NEW, from verification).** The Mission 1 trust moment as specced (citation click → contract pane scrolls + highlights) exceeds the app as built — citations currently render as text excerpts with no document pane. Build the pane in `docside` before Cohort 1, or soften the Mission 1 AC? (`ARCHITECTURE-VERIFICATION.md` §6.1 — the most consequential open item.)
-8. **Seller narrative summaries (NEW, from verification).** `offer_summaries` is never written, so the seller view has no plain-English summary sections. Implement before Cohort 1, or run Mission 4 against the share view as-built and treat what's-missing as research signal? (`ARCHITECTURE-VERIFICATION.md` §6.2.)
+7. **Click-to-source pane.** ✅ **DECIDED (Morris, 2026-08-03): soften Mission 1 to the excerpt experience.** v1 delivers the trust moment as the cited excerpt (page + clause + verbatim contract language); the live document pane stays the mockup's target direction for a later pass. Mission 1 ACs, the §2 delivery note, and the §6 mockup-mapping note reflect this. Debrief Parts 3/5/6 will show whether agents ask for in-document navigation — that demand signal is itself research data.
+8. **Seller narrative summaries.** ✅ **DECIDED (Morris, 2026-08-03): implement summaries first.** `offer_summaries` generation + seller-view narrative rendering land in `docside` before Cohort 1. Tracked as a Phase 4 prerequisite in `docs/PLAN.md` and item 7 of `ARCHITECTURE-VERIFICATION.md` §7.
 
 ---
 
