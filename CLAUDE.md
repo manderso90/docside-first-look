@@ -31,7 +31,7 @@ Key inherited constraints (see `docside/CLAUDE.md` for the full list):
 - **Stack:** Next.js 15 App Router + TypeScript, pnpm, Tailwind 4 (CSS-first tokens), shadcn/ui + Radix + Lucide, Supabase, Vercel, react-hook-form + zod.
 - **Deployment target:** separate Vercel project `docside-first-look` → `preview.docside.ai`. Never reference `docside.com`.
 
-**Design cue (founder preference, 2026-08-03):** Morris likes the look of `docside-experience/07-screen-design/comparison-view-mockup.html` (and its v2/v3 iterations). Use that mockup family as the visual reference point for First Look surfaces.
+**Design cue (founder preference, 2026-08-03):** Morris likes the look of `docside-experience/07-screen-design/comparison-view-mockup.html` (and its v2/v3 iterations). Use that mockup family as the visual reference point for First Look surfaces. Read-only copies of these mockups (plus the verify-workspace mockup) are vendored in `design-reference/` in this repo — open those when the sibling repo is not available (e.g., cloud sessions).
 
 ## First Look hard rules (from the vision doc)
 
