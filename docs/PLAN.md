@@ -1,6 +1,6 @@
 # Docside First Look — Build Plan
 
-> **Status:** v0.1 — drafted 2026-08-03. Phase 0 executed; Phases 1+ pending founder review (and an ultraplan deep-planning pass).
+> **Status:** v0.2 — 2026-08-03. Phases 0–2 complete: the product brief is `docs/BRIEF.md`, with the Phase 2 architecture decisions folded into its §10. Phase 3 (build) is next, pending founder review of the brief.
 
 ## Phase 0 — Repo foundation ✅
 
@@ -10,9 +10,9 @@
 - `docs/PLAN.md` (this file)
 - `.gitignore`, git init, connect to `github.com/manderso90/docside-first-look`, initial push
 
-## Phase 1 — The product brief (docs, no code)
+## Phase 1 — The product brief (docs, no code) ✅
 
-Write `docs/BRIEF.md` defining every screen, interaction, data point, feedback question, and acceptance criterion:
+Delivered as `docs/BRIEF.md` (2026-08-03). It defines every screen, interaction, data point, feedback question, and acceptance criterion:
 
 - **The seven screens** (welcome → first-impression → founder video → scenario → four-mission workspace → debrief → thank-you), acceptance criteria each
 - **The four missions** with per-mission micro-questions (e.g., the 1–5 verification-confidence question after Mission 1)
@@ -23,16 +23,15 @@ Write `docs/BRIEF.md` defining every screen, interaction, data point, feedback q
 
 **Design cue:** the comparison-view mockup family in `docside-experience/07-screen-design/` (`comparison-view-mockup.html`, `-v2`, `-v3`) is the founder-preferred visual reference for First Look surfaces.
 
-## Phase 2 — Architecture decisions (before building)
+## Phase 2 — Architecture decisions (before building) ✅
 
-The big unresolved question: the First Look shell is separate, but it **launches the real app in a controlled preview state**. The main `docside` app therefore needs a preview mode — seeded workspace, entered via signed token, sandboxed from real data. That is cross-repo work and must clear `docside`'s §17 one-sentence test. Options: preview-tenant in the existing Supabase project vs. a dedicated preview environment.
+Decided in `docs/BRIEF.md` §10 (AD-1…AD-5); details and rejected alternatives there:
 
-Also to decide in this phase:
-
-- Where survey responses + telemetry land (likely a small set of Supabase tables)
-- Founder-video hosting
-- Audio-response recording mechanism (debrief Part 8)
-- Scheduling link (e.g., Calendly) for "talk with Morris"
+- **AD-1 Preview tenancy:** flagged, RLS-isolated preview workspaces in the existing Supabase project, cloned per participant from one golden seed; outbound actions stubbed; TTL cleanup. §17 sentence recorded in the brief.
+- **AD-2 Composition:** full redirect to `app.docside.ai`; the main app renders First Look mission chrome in preview mode, then returns to the shell for the debrief. (No iframe.)
+- **AD-3 Invite tokens:** re-entrant capability URL → server-side exchange for a short-lived Supabase-compatible preview JWT; revocation at the exchange.
+- **AD-4 Telemetry/feedback storage:** `first_look` schema in the same Supabase project; single server write path through the shell's ingestion route (app events beacon to it).
+- **AD-5 Media & scheduling:** static MP4 + native player with WebVTT captions and quartile telemetry; MediaRecorder → private Storage bucket for audio; plain Calendly/Cal.com outbound link.
 
 ## Phase 3 — Build the seven-screen shell
 
@@ -54,6 +53,11 @@ Moderated Zoom sessions with the first 2–3 agents (think-aloud, screen share) 
 
 ## Open questions
 
+Tracked in `docs/BRIEF.md` §13:
+
 1. Is the main app's verify/compare/share flow stable enough today for missions 1–4, or does First Look plan against a target milestone in `docside/docs/PLAN.md`?
-2. Founder video — recorded already, or should the brief include a script draft?
-3. "GS Retrofit" personalization line in the original doc — leftover or meaningful? (Omitted for now.)
+2. Founder video — recorded already, or is the script draft in BRIEF §5.3 the starting point?
+3. "GS Retrofit" personalization line in the original doc — leftover or meaningful? (Omission formalized in BRIEF §3.)
+4. Docside schema/JWT mechanics for AD-1/AD-3 — confirm against the `docside` repo at Phase 4 (unavailable in cloud sessions).
+5. Participant card — downloadable image in v1, or on-screen designation only?
+6. Session recording — revisit after Cohort 1; explicit prior consent required if ever added.
