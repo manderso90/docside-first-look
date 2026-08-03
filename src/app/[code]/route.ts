@@ -18,12 +18,15 @@ export async function GET(
   context: { params: Promise<{ code: string }> },
 ) {
   const { code } = await context.params;
-  const store = getStore();
 
+  let store;
   let lookup;
   try {
+    store = getStore();
     lookup = await store.lookupInvite(code);
   } catch (error) {
+    // Store unavailable (e.g. deployed before Phase 5 Supabase wiring) or
+    // lookup failure: degrade to the calm inactive page, never a 500.
     console.error("[first-look] invite lookup failed", error);
     return NextResponse.redirect(new URL("/link-inactive", _request.url));
   }

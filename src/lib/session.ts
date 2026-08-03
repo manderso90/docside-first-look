@@ -35,12 +35,19 @@ export async function getSessionContext(): Promise<SessionContext | null> {
   const jar = await cookies();
   const sessionId = jar.get(SESSION_COOKIE)?.value;
   if (!sessionId) return null;
-  const store = getStore();
-  const session = await store.getSession(sessionId);
-  if (!session) return null;
-  const participant = await store.getParticipant(session.participantId);
-  if (!participant) return null;
-  return { session, participant };
+  try {
+    const store = getStore();
+    const session = await store.getSession(sessionId);
+    if (!session) return null;
+    const participant = await store.getParticipant(session.participantId);
+    if (!participant) return null;
+    return { session, participant };
+  } catch (error) {
+    // Store unavailable: treat as no session (screens redirect to
+    // /link-inactive) rather than a 500.
+    console.error("[first-look] session lookup failed", error);
+    return null;
+  }
 }
 
 /** Rough device class from the UA — analytics color, not gospel (BRIEF §8). */
