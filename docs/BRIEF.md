@@ -542,12 +542,14 @@ Additions implied by the design reference (enforced by the mockup family's own s
 
 ## §13 — Open questions
 
-1. **App readiness.** Is the main app's verify/compare/share flow stable enough today for Missions 1–4, or does First Look plan against a target milestone in `docside/docs/PLAN.md`? (Determines Phase 4 sequencing; the vision permits substituting only genuinely unstable portions.)
-2. **Founder video.** Recorded already, or is the §5.3 script draft the starting point? Owner: Morris.
+1. **App readiness.** ✅ **ANSWERED (Morris, 2026-08-03):** the main app's verify/compare/share flow is stable enough for Missions 1–4 today. First Look builds against the current app, not a future milestone; no substitution needed.
+2. **Founder video.** ✅ **ANSWERED (Morris, 2026-08-03):** not yet recorded. The §5.3 script draft is the starting point; recording is a Phase 5/6 prerequisite (must exist before Cohort 1). Owner: Morris.
 3. **"GS Retrofit" personalization line** in the original doc — leftover or meaningful? Omission stands until confirmed.
-4. **Docside schema/JWT mechanics.** AD-1/AD-3 details (workspace clone mechanics, Supabase JWT minting for RLS claims) must be verified against the `docside` repo, which is unavailable in cloud sessions. The decisions stand; the mechanics get confirmed at Phase 4.
+4. **Docside schema/JWT mechanics.** ✅ **ANSWERED (verification pass, 2026-08-03):** see `docs/ARCHITECTURE-VERIFICATION.md`. AD-1 confirmed with one amendment (the tenancy unit is a preview *agent* — a real `auth.users` row — so existing RLS works unchanged; `agents.is_preview` flag); AD-3 amended (real GoTrue sessions via `admin.generateLink` token-hash exchange, not hand-minted JWTs); AD-2/AD-4 confirmed as written. Two new gaps for founder decision: the click-to-source pane and seller narrative summaries do not exist in the app yet (see that doc's §6, and Q7–Q8 below).
 5. **Participant card.** Does v1 generate a downloadable card image, or is the on-screen designation enough?
 6. **Session recording.** Revisit after Cohort 1 — only with explicit prior consent if ever added.
+7. **Click-to-source pane (NEW, from verification).** The Mission 1 trust moment as specced (citation click → contract pane scrolls + highlights) exceeds the app as built — citations currently render as text excerpts with no document pane. Build the pane in `docside` before Cohort 1, or soften the Mission 1 AC? (`ARCHITECTURE-VERIFICATION.md` §6.1 — the most consequential open item.)
+8. **Seller narrative summaries (NEW, from verification).** `offer_summaries` is never written, so the seller view has no plain-English summary sections. Implement before Cohort 1, or run Mission 4 against the share view as-built and treat what's-missing as research signal? (`ARCHITECTURE-VERIFICATION.md` §6.2.)
 
 ---
 
