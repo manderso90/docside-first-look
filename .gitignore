@@ -20,6 +20,9 @@ coverage/
 playwright-report/
 test-results/
 
+# Dev audio fallback (never committed)
+var/
+
 # Misc
 .DS_Store
 *.log
@@ -27,5 +30,5 @@ test-results/
 scratch/
 
 # Claude Code local files
-.claude/settings.local.json
-.claude/claudex/
+**/.claude/settings.local.json
+**/.claude/claudex/

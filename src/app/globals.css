@@ -1,0 +1,105 @@
+@import "tailwindcss";
+
+/*
+ * Design tokens — canonical source: design-reference/comparison-view-mockup-v3.html
+ * (BRIEF §5, §11.3). Brand: docside Statement §15 / DEC-27. Light mode only.
+ */
+@theme {
+  /* brand core + web ramps */
+  --color-deep-ocean: #115073;
+  --color-midnight-slate: #0e2735;
+  --color-paper-white: #e0dfd8;
+  --color-ocean-700: #103d57;
+  --color-ocean-500: #2c7096;
+  --color-ocean-400: #5590b1;
+  --color-ocean-300: #8bb0c5;
+  --color-ocean-200: #bfd0db;
+  --color-ocean-100: #dbe7ef;
+  --color-ocean-50: #eef4f8;
+
+  /* semantic surfaces & ink */
+  --color-paper: #ecece8;
+  --color-surface: #fefefe;
+  --color-surface-2: #f6f5f3;
+  --color-ink: #161616;
+  --color-ink-2: #2d2d2b;
+  --color-ink-3: #434341;
+  --color-line: #c7c7c7;
+  --color-line-2: #e0dfd8;
+
+  /* state families (v3; amber/violet/success tints provisional per palette board) */
+  --color-verified: #115073;
+  --color-verified-soft: #e5f1f7;
+  --color-verified-line: #aed3ea;
+  --color-attention: #a0701a;
+  --color-attention-soft: #f8f0dd;
+  --color-attention-line: #e7d2a4;
+  --color-corrected: #54459b;
+  --color-corrected-soft: #eeebf8;
+  --color-corrected-line: #cdc6ec;
+  --color-muted: #868682;
+  --color-muted-soft: #ecece8;
+  --color-muted-line: #cac9c2;
+  --color-success-deep: #3f7a2e;
+  --color-success-soft: #e8f4e2;
+  --color-success-line: #b7dca9;
+  --color-conflict: #863c28;
+  --color-conflict-soft: #f9e0d9;
+  --color-conflict-line: #e06442;
+
+  /* type — wired to next/font variables in layout.tsx */
+  --font-sans: var(--font-plex-sans), system-ui, sans-serif;
+  --font-mono: var(--font-plex-mono), ui-monospace, monospace;
+  --font-display: var(--font-plex-serif), Georgia, serif;
+
+  /* radii + shadow (v3) */
+  --radius-card: 10px;
+  --radius-control: 5.5px;
+  --shadow-card:
+    0 1px 2px rgba(14, 39, 53, 0.05), 0 4px 16px rgba(14, 39, 53, 0.06);
+
+  /* motion (v3 ease; honor prefers-reduced-motion at usage sites) */
+  --ease-calm: cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+body {
+  background: var(--color-paper);
+  color: var(--color-ink);
+  -webkit-font-smoothing: antialiased;
+  font-size: 14px;
+  line-height: 1.45;
+}
+
+:focus-visible {
+  outline: 2px solid var(--color-verified);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+/* micro-caps label register (v3 .scn/.chip idiom) */
+.label-caps {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}
