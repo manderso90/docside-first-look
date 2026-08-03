@@ -33,9 +33,11 @@ Decided in `docs/BRIEF.md` §10 (AD-1…AD-5); details and rejected alternatives
 - **AD-4 Telemetry/feedback storage:** `first_look` schema in the same Supabase project; single server write path through the shell's ingestion route (app events beacon to it).
 - **AD-5 Media & scheduling:** static MP4 + native player with WebVTT captions and quartile telemetry; MediaRecorder → private Storage bucket for audio; plain Calendly/Cal.com outbound link.
 
-## Phase 3 — Build the seven-screen shell
+## Phase 3 — Build the seven-screen shell ◑ (built 2026-08-03; deploy pending)
 
-Next.js 15 App Router app, deployed as Vercel project `docside-first-look` → `preview.docside.ai`. Brand tokens and IBM Plex inherited; light mode only; polish-aware build practice from `docside/CLAUDE.md` §15.9 applies (all four UI states per screen, mobile-checked, WCAG AA).
+Shipped in-repo: Next 15 App Router shell on the v3 mockup tokens + IBM Plex, invite-code exchange (httpOnly session, URL scrub via redirect, revoked/expired → calm inactive page), forward-only flow guard, all seven screens (workspace as an explicit Phase 4 placeholder), 8-part debrief with exact §7 wording (text + MediaRecorder audio + scheduling link), `/api/events` ingestion with the per-event property allowlist, memory dev store (dev invite `/dev-preview-morris`) + `first_look`-schema Supabase store that fails closed in production. `pnpm tsc` / `lint` / `build` green; flow smoke-tested.
+
+Remaining before Cohort 1: Vercel project + `preview.docside.ai` domain; the Docside intro capture asset (screen 2); founder video MP4 + captions (env `FOUNDER_VIDEO_URL`); Playwright e2e per docside's pre-deploy checklist; visual pass at 375px.
 
 ## Phase 4 — Seed data + preview mode in the main app
 
