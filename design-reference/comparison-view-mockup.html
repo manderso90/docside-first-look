@@ -1,0 +1,1372 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Docside — Comparison View</title>
+<!-- Google Fonts is the ONLY network request (accepted substrate; verify-workspace parity) -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Serif:wght@500;600&display=swap" rel="stylesheet">
+<style>
+  /* ===== TOKENS — copied verbatim from verify-workspace-mockup.html :root (do not invent a palette) ===== */
+  :root{
+    --paper:#F4F6F5; --surface:#FFFFFF; --surface-2:#FBFCFB;
+    --ink:#15202A; --ink-2:#47545F; --ink-3:#7A858E;
+    --line:#E4E8E7; --line-2:#EFF2F1;
+    --verified:#0E6B5A; --verified-soft:#E4F0EC; --verified-line:#BCDBD2;
+    --attention:#A0701A; --attention-soft:#F8F0DD; --attention-line:#E7D2A4;
+    --corrected:#46579B; --corrected-soft:#EBEEF7; --corrected-line:#C7CFEA;
+    --muted:#7C868E; --muted-soft:#EFF1F1; --muted-line:#DDE2E1;
+    --font-ui:'IBM Plex Sans',system-ui,sans-serif;
+    --font-data:'IBM Plex Mono',ui-monospace,monospace;
+    --font-display:'IBM Plex Serif',Georgia,serif;
+    --r:10px; --r-sm:7px;
+    --shadow:0 1px 2px rgba(21,32,42,.04),0 4px 16px rgba(21,32,42,.05);
+  }
+  /* ===== reset — verbatim from verify-workspace ===== */
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{height:100%}
+  body{font-family:var(--font-ui);background:var(--paper);color:var(--ink);
+    -webkit-font-smoothing:antialiased;font-size:14px;line-height:1.45;overflow:hidden}
+  button{font-family:inherit;cursor:pointer;border:none;background:none;color:inherit}
+  :focus-visible{outline:2px solid var(--verified);outline-offset:2px;border-radius:4px}
+
+  /* ===== shell — .rail verbatim from verify-workspace ===== */
+  .app{display:grid;grid-template-columns:56px 1fr;height:100vh}
+  .rail{background:var(--ink);display:flex;flex-direction:column;align-items:center;
+    gap:4px;padding:14px 0}
+  .rail .mark{width:30px;height:30px;border-radius:8px;background:var(--verified);
+    display:grid;place-items:center;color:#fff;font-family:var(--font-display);
+    font-weight:600;font-size:17px;margin-bottom:14px}
+  .rail button{width:38px;height:38px;border-radius:9px;color:#8C99A3;display:grid;
+    place-items:center;transition:.15s}
+  .rail button:hover{background:rgba(255,255,255,.07);color:#cfd6db}
+  .rail button.on{background:rgba(255,255,255,.10);color:#fff}
+  .rail .spacer{flex:1}
+  .rail svg{width:19px;height:19px;stroke-width:1.7}
+
+  .main{display:flex;flex-direction:column;min-width:0;height:100vh;overflow:hidden}
+  .scroll{flex:1;overflow-y:auto;min-height:0}
+
+  /* ===== context bar — .ctx verbatim from verify-workspace ===== */
+  .ctx{display:flex;align-items:center;gap:18px;padding:13px 22px;background:var(--surface);
+    border-bottom:1px solid var(--line);flex-shrink:0}
+  .ctx .prop{font-family:var(--font-display);font-size:17px;font-weight:600;letter-spacing:-.01em}
+  .ctx .buyer{color:var(--ink-2);font-size:13px}
+  .ctx .buyer b{color:var(--ink);font-weight:600}
+  .ctx .prog{margin-left:auto;display:flex;align-items:center;gap:9px;font-size:12.5px;color:var(--ink-3)}
+  .viewtog{display:flex;background:var(--paper);border:1px solid var(--line);border-radius:8px;padding:2px}
+  .viewtog button{font-size:12px;font-weight:500;padding:4px 11px;border-radius:6px;color:var(--ink-3)}
+  .viewtog button.on{background:var(--surface);color:var(--ink);box-shadow:0 1px 2px rgba(0,0,0,.06)}
+  /* set-provisional marker — Fork K; visually distinct from any offer-level marker */
+  .setmark{font-size:12px;color:var(--ink-2);display:inline-flex;align-items:center;gap:6px}
+  .setmark i{width:6px;height:6px;border-radius:50%;background:var(--attention);display:block;
+    box-shadow:0 0 0 3px var(--attention-soft)}
+
+  /* scenario selector (dev harness — swaps the fixture object) */
+  .scn{display:flex;gap:2px;background:var(--paper);border:1px solid var(--line);border-radius:8px;padding:2px}
+  .scn button{font-size:11.5px;font-weight:600;padding:4px 9px;border-radius:6px;color:var(--ink-3)}
+  .scn button.on{background:var(--ink);color:#fff}
+
+  /* ===== state chips / treatments — reused verbatim from verify-workspace ===== */
+  .chip{display:inline-flex;align-items:center;gap:5px;font-size:11px;font-weight:600;
+    padding:2px 8px;border-radius:6px;font-family:var(--font-ui)}
+  .chip svg{width:12px;height:12px}
+  .c-corr{background:var(--corrected-soft);color:var(--corrected);border:1px solid var(--corrected-line)}
+  .c-attn{background:var(--attention-soft);color:var(--attention);border:1px solid var(--attention-line)}
+  .c-ver{background:var(--verified-soft);color:var(--verified);border:1px solid var(--verified-line)}
+  .state-empty{color:var(--muted);font-style:italic;font-size:13px}
+  .state-unread{display:inline-flex;align-items:center;gap:6px;color:var(--muted);font-size:13px;
+    background:var(--muted-soft);border:1px dashed var(--muted-line);padding:2px 9px;border-radius:6px}
+  .state-na{color:var(--muted);font-size:13px}
+  .quote{font-family:var(--font-data);font-size:13px;color:var(--ink);background:var(--surface-2);
+    border-left:2px solid var(--line);padding:5px 10px;border-radius:4px;display:inline-block}
+  .orig{font-family:var(--font-data);font-size:11px;color:var(--corrected)}
+
+  /* ===== TWO NEW namespaced classes (the only invented treatments) ===== */
+  /* not-captured: muted, NON-italic (distinct from empty which is italic), system glyph */
+  .cv-state-notcaptured{display:inline-flex;align-items:center;gap:6px;color:var(--ink-3);
+    font-size:13px;font-style:normal;font-weight:500}
+  .cv-state-notcaptured svg{width:12px;height:12px;opacity:.8}
+  /* conflicting: attention-tinted, two-values glyph — its own edge treatment, never collapsed to unread */
+  .cv-state-conflict{display:inline-flex;align-items:center;gap:6px;color:var(--attention);
+    font-size:13px;background:var(--attention-soft);border:1px solid var(--attention-line);
+    padding:2px 9px;border-radius:6px;font-weight:500}
+  .cv-state-conflict svg{width:12px;height:12px}
+
+  /* ===== basis header (weighting at rest — doctrine §4.2 / DEC-10) ===== */
+  .basis{background:var(--surface);border-bottom:1px solid var(--line);padding:15px 22px}
+  .basis .line{font-size:13.5px;color:var(--ink);display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+  .basis .line .lbl{color:var(--ink-2)}
+  .basis .line b{font-weight:600}
+  .basis .line .sep{color:var(--ink-3)}
+  .wbars{display:flex;gap:10px;margin-top:11px;align-items:flex-end;flex-wrap:wrap}
+  .wbar{display:flex;flex-direction:column;gap:4px}
+  .wbar .cap{font-size:10.5px;letter-spacing:.03em;text-transform:uppercase;color:var(--ink-3);font-weight:600}
+  .wbar .track{height:6px;width:120px;background:var(--line-2);border-radius:3px;overflow:hidden}
+  .wbar .fillw{height:100%;background:var(--ink);border-radius:3px;transition:width .35s cubic-bezier(.4,0,.2,1)}
+  .cust-btn{margin-left:auto;font-size:12.5px;font-weight:600;color:var(--verified);
+    display:inline-flex;align-items:center;gap:6px;padding:6px 12px;border:1px solid var(--verified-line);
+    border-radius:8px;background:var(--verified-soft)}
+  .cust-btn svg{width:14px;height:14px}
+  .basis-top{display:flex;align-items:center;gap:14px}
+
+  /* customize editor (expands in place) */
+  .cust{display:none;margin-top:14px;padding-top:14px;border-top:1px solid var(--line-2)}
+  .cust.on{display:block}
+  .cust .hint{font-size:12px;color:var(--ink-3);margin-bottom:12px;display:flex;align-items:center;gap:7px}
+  .cust .hint svg{width:14px;height:14px}
+  /* priority-order editor — the ranker is lexicographic, so ONLY the order of priorities
+     changes the ranking; there is no magnitude to set. Reorder controls, not sliders. */
+  .prilist{display:flex;flex-direction:column;gap:8px;max-width:520px}
+  .prirow{display:flex;align-items:center;gap:12px;padding:9px 12px;border:1px solid var(--line);
+    border-radius:var(--r-sm);background:var(--surface)}
+  .prirow .prirank{width:22px;height:22px;border-radius:6px;background:var(--ink);color:#fff;
+    display:grid;place-items:center;font-family:var(--font-data);font-size:12px;font-weight:600;flex:0 0 auto}
+  .prirow .priname{font-size:13px;font-weight:600;color:var(--ink);flex:1}
+  .prirow .pribtns{display:flex;gap:4px}
+  .prirow .pribtn{width:26px;height:26px;border-radius:6px;border:1px solid var(--line);
+    background:var(--surface);color:var(--ink-2);display:grid;place-items:center;font-size:11px;line-height:1}
+  .prirow .pribtn:hover:not([disabled]){border-color:var(--ink-3);color:var(--ink)}
+  .prirow .pribtn[disabled]{opacity:.3;cursor:default}
+  .cust .row-act{display:flex;gap:9px;margin-top:14px;align-items:center;flex-wrap:wrap}
+  .cust .presets{display:flex;gap:7px;margin-right:auto}
+  .btn{font-size:12.5px;font-weight:600;padding:6px 13px;border-radius:7px;transition:.13s;border:1px solid transparent}
+  .btn-prim{background:var(--verified);color:#fff}
+  .btn-prim:hover{background:#0c5e4f}
+  .btn-ghost{background:var(--surface);border:1px solid var(--line);color:var(--ink-2)}
+  .btn-ghost:hover{border-color:var(--ink-3);color:var(--ink)}
+
+  /* ===== ranked body — table (real table semantics for a11y §5) ===== */
+  .body-wrap{padding:8px 22px 40px}
+  .ctxbar-sub{font-size:12.5px;color:var(--ink-3);padding:14px 22px 0}
+  table.cmp{width:100%;border-collapse:separate;border-spacing:0;table-layout:fixed}
+  table.cmp col.spine{width:210px}
+  .cmp thead th{font-size:10.5px;letter-spacing:.05em;text-transform:uppercase;color:var(--ink-3);
+    font-weight:700;text-align:left;padding:14px 12px 8px;vertical-align:bottom;border-bottom:1px solid var(--line)}
+  .cmp thead th.spine-h{color:var(--ink-2)}
+  .cmp tbody td,.cmp tbody th{padding:14px 12px;vertical-align:top;border-bottom:1px solid var(--line-2);
+    transition:background .25s}
+  .cmp tbody tr:hover td,.cmp tbody tr:hover th{background:var(--surface-2)}
+
+  /* spine cell */
+  th.spine{text-align:left;font-weight:400}
+  .pos{display:flex;gap:11px;align-items:flex-start}
+  .pos .num{flex:0 0 auto;width:26px;height:26px;border-radius:8px;background:var(--paper);
+    border:1px solid var(--line);display:grid;place-items:center;font-family:var(--font-data);
+    font-size:13px;font-weight:600;color:var(--ink)}
+  .pos .who{min-width:0}
+  .pos .name{font-size:14.5px;font-weight:600;color:var(--ink);font-family:var(--font-display)}
+  .pos .prev{font-size:11.5px;color:var(--ink-2);margin-top:3px;line-height:1.35}
+  .pos .prev .arw{color:var(--ink-3)}
+  .pos .expand{margin-top:7px;font-size:11.5px;font-weight:600;color:var(--verified);
+    display:inline-flex;align-items:center;gap:5px}
+  .pos .expand svg{width:12px;height:12px}
+  /* offer-level marker — "not yet verified" — distinct from set-provisional marker */
+  .nyv{display:inline-flex;align-items:center;gap:5px;font-size:10px;font-weight:700;letter-spacing:.03em;
+    text-transform:uppercase;color:var(--attention);background:var(--attention-soft);
+    border:1px solid var(--attention-line);padding:1px 7px;border-radius:5px;margin-top:5px}
+
+  /* matrix cell */
+  .cv-val{font-family:var(--font-data);font-size:13px;color:var(--ink);font-weight:500;line-height:1.4}
+  .cv-lead{display:inline-flex;align-items:center;gap:3px;font-size:10px;font-weight:700;
+    color:var(--verified);letter-spacing:.02em;margin-left:2px;vertical-align:middle}
+  .cv-lead .dia{font-size:9px}
+  .cv-prov{margin-top:6px;font-family:var(--font-data);font-size:10px;color:var(--ink-3);
+    display:inline-flex;align-items:center;gap:4px;padding:1px 6px;border-radius:5px;
+    border:1px solid var(--line-2);background:var(--surface)}
+  .cv-prov:hover{color:var(--verified);border-color:var(--verified-line)}
+  .cv-prov svg{width:10px;height:10px;opacity:.75}
+  .cv-prov.sys{color:var(--ink-3);border-style:dashed}
+  .cv-cav{margin-top:7px;font-size:11px;color:var(--attention);display:flex;flex-direction:column;gap:3px}
+  .cv-cav .vfy{color:var(--verified);font-weight:600;display:inline-flex;align-items:center;gap:4px}
+  .cv-cav .vfy svg{width:11px;height:11px}
+  .cv-sub{font-size:11px;color:var(--ink-3);margin-top:3px}
+
+  /* withheld bracket (tier 3) + near-tie band */
+  tr.bandrow td{padding:0;border-bottom:none}
+  .band{margin:10px 0 0;border:1px solid var(--attention-line);border-radius:var(--r);
+    background:linear-gradient(180deg,var(--attention-soft),transparent 60%);overflow:hidden}
+  .band.tie{border-color:var(--corrected-line);background:linear-gradient(180deg,var(--corrected-soft),transparent 60%)}
+  .band-h{padding:9px 14px;font-size:12px;font-weight:600;color:var(--attention);
+    display:flex;align-items:center;gap:8px;border-bottom:1px solid var(--attention-line)}
+  .band.tie .band-h{color:var(--corrected);border-bottom-color:var(--corrected-line)}
+  .band-h svg{width:14px;height:14px}
+  .band-h .bracket{font-family:var(--font-data);font-size:11px;opacity:.8}
+  .band table.cmp{background:transparent}
+  .band table.cmp tbody td,.band table.cmp tbody th{border-bottom:1px solid rgba(160,112,26,.14)}
+  .band.tie table.cmp tbody td,.band.tie table.cmp tbody th{border-bottom:1px solid rgba(70,87,155,.14)}
+
+  /* other terms (Fork J — verbatim, never scored) */
+  .other{margin:8px 22px 0;border-top:1px dashed var(--line);padding-top:16px}
+  .other h4{font-size:11px;letter-spacing:.05em;text-transform:uppercase;color:var(--ink-3);
+    font-weight:700;margin-bottom:4px}
+  .other .note{font-size:11.5px;color:var(--ink-3);margin-bottom:11px}
+  .other .otrow{display:flex;gap:14px;padding:8px 0;border-bottom:1px solid var(--line-2)}
+  .other .otrow .who{flex:0 0 110px;font-size:12.5px;font-weight:600;color:var(--ink-2)}
+  .other .otrow .q{flex:1}
+
+  /* single-offer (N=1) fallback — no ranking chrome */
+  .single{padding:24px 22px;max-width:640px}
+  .single .head{font-family:var(--font-display);font-size:19px;font-weight:600;margin-bottom:3px}
+  .single .oneline{font-size:12.5px;color:var(--attention);background:var(--attention-soft);
+    border:1px solid var(--attention-line);border-radius:8px;padding:8px 12px;display:inline-flex;
+    gap:7px;align-items:center;margin-bottom:20px}
+  .single .oneline svg{width:14px;height:14px}
+  .single .frow{display:flex;gap:16px;padding:11px 0;border-bottom:1px solid var(--line-2)}
+  .single .frow .k{flex:0 0 150px;color:var(--ink-2);font-size:13px}
+  .single .frow .v{flex:1}
+
+  /* seller banner */
+  .seller-frame{background:var(--ink);color:#fff;padding:14px 22px}
+  .seller-frame .prin{font-family:var(--font-display);font-size:15px;font-weight:500;line-height:1.45;max-width:720px}
+  .seller-frame .sub{font-size:12px;color:#9fb0ad;margin-top:5px}
+
+  /* ===== per-offer detail pane (Clause-1 atom — Fork H) ===== */
+  .atom{position:fixed;top:0;right:0;bottom:0;width:380px;max-width:92vw;background:var(--surface);
+    border-left:1px solid var(--line);box-shadow:-8px 0 40px rgba(21,32,42,.12);transform:translateX(100%);
+    transition:transform .28s cubic-bezier(.16,1,.3,1);z-index:35;overflow-y:auto}
+  .atom.on{transform:translateX(0)}
+  .atom-h{position:sticky;top:0;background:var(--surface);border-bottom:1px solid var(--line);
+    padding:16px 18px;display:flex;justify-content:space-between;align-items:flex-start;z-index:2}
+  .atom-h .t{font-family:var(--font-display);font-size:17px;font-weight:600}
+  .atom-h .s{font-size:11.5px;color:var(--ink-3);margin-top:2px}
+  .atom-h button{font-size:13px;color:var(--verified);font-weight:600}
+  .atom-body{padding:8px 18px 24px}
+  .atom-f{padding:12px 0;border-bottom:1px solid var(--line-2)}
+  .atom-f .k{font-size:11px;letter-spacing:.04em;text-transform:uppercase;color:var(--ink-3);font-weight:600}
+  .atom-f .v{margin-top:5px}
+  .atom-f .p{font-family:var(--font-data);font-size:10.5px;color:var(--ink-3);margin-top:6px;
+    display:inline-flex;align-items:center;gap:5px}
+  .atom-f .p svg{width:11px;height:11px;opacity:.7}
+  .atom-vlink{margin-top:16px}
+  .atom-vlink a{font-size:12.5px;font-weight:600;color:var(--verified);display:inline-flex;
+    align-items:center;gap:6px;text-decoration:none}
+  .atom-vlink svg{width:14px;height:14px}
+
+  /* pairwise delta popover (why above — on demand) */
+  .delta{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(160%);
+    background:var(--ink);color:#fff;border-radius:12px;padding:16px 20px;max-width:560px;width:calc(100% - 44px);
+    box-shadow:0 16px 50px rgba(0,0,0,.3);z-index:38;transition:transform .3s cubic-bezier(.16,1,.3,1);
+    visibility:hidden;opacity:0;pointer-events:none}
+  .delta.on{transform:translateX(-50%) translateY(0);visibility:visible;opacity:1;pointer-events:auto}
+  .delta .dh{font-size:11px;letter-spacing:.05em;text-transform:uppercase;color:#8fb3ab;font-weight:700;margin-bottom:7px;
+    display:flex;justify-content:space-between}
+  .delta .dh button{color:#8fb3ab}
+  .delta .dtxt{font-size:13.5px;line-height:1.5}
+  .delta .dtxt b{color:#8fddc5}
+
+  /* share footer */
+  .foot{border-top:1px solid var(--line);background:var(--surface);padding:14px 22px;
+    display:flex;align-items:center;gap:14px;flex-shrink:0}
+  .foot .hint{font-size:12px;color:var(--ink-3);margin-right:auto;display:flex;align-items:center;gap:7px}
+  .foot .hint svg{width:14px;height:14px}
+  .share{display:inline-flex;align-items:center;gap:8px;background:var(--ink);color:#fff;
+    font-size:14px;font-weight:600;padding:11px 20px;border-radius:9px;transition:.15s;box-shadow:var(--shadow)}
+  .share:hover{background:#0c1620}
+  .share svg{width:16px;height:16px}
+  .share.gated{background:var(--surface);color:var(--attention);border:1px solid var(--attention-line)}
+
+  /* dev toolbar (grammar sheet toggle + self-check) — NEVER rendered in seller mode */
+  .devbar{display:flex;gap:8px;align-items:center;padding:7px 22px;background:var(--surface-2);
+    border-bottom:1px solid var(--line-2);font-size:11.5px;color:var(--ink-3)}
+  .devbar button{font-size:11.5px;font-weight:600;color:var(--ink-2);border:1px solid var(--line);
+    border-radius:6px;padding:3px 9px;background:var(--surface)}
+  .devbar .tag{font-weight:700;letter-spacing:.04em;text-transform:uppercase;font-size:9.5px;
+    color:var(--ink-3);background:var(--paper);border:1px solid var(--line);border-radius:4px;padding:1px 6px}
+
+  /* grammar sheet (dev-only) */
+  .gsheet{display:none;padding:18px 22px;background:var(--surface-2);border-bottom:1px solid var(--line)}
+  .gsheet.on{display:block}
+  .gsheet h3{font-size:13px;font-weight:700;margin-bottom:3px}
+  .gsheet .gnote{font-size:11.5px;color:var(--ink-3);margin-bottom:14px}
+  .gcells{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:12px}
+  .gcell{border:1px solid var(--line);border-radius:var(--r-sm);background:var(--surface);padding:12px}
+  .gcell .gk{font-size:10px;letter-spacing:.04em;text-transform:uppercase;color:var(--ink-3);font-weight:700;margin-bottom:8px}
+  .gcell .gv{min-height:26px}
+  .gcell .gp{font-family:var(--font-data);font-size:9.5px;color:var(--ink-3);margin-top:8px}
+
+  /* dialog (share mock — no real send) */
+  .dim{position:fixed;inset:0;background:rgba(21,32,42,.4);display:none;z-index:40;
+    place-items:center;backdrop-filter:blur(2px);padding:20px}
+  .dim.on{display:grid}
+  .dlg{background:var(--surface);border-radius:16px;max-width:440px;width:100%;padding:24px;box-shadow:0 20px 60px rgba(0,0,0,.25)}
+  .dlg .ic{width:42px;height:42px;border-radius:11px;display:grid;place-items:center;margin-bottom:14px}
+  .dlg.warn .ic{background:var(--attention-soft);color:var(--attention)}
+  .dlg.good .ic{background:var(--verified-soft);color:var(--verified)}
+  .dlg .ic svg{width:22px;height:22px}
+  .dlg h3{font-size:17px;font-weight:600;letter-spacing:-.01em;margin-bottom:7px}
+  .dlg p{font-size:13.5px;color:var(--ink-2);margin-bottom:16px}
+  .dlg input{width:100%;font-size:13.5px;padding:9px 12px;border:1px solid var(--line);border-radius:8px;margin-bottom:16px}
+  .dlg .drow{display:flex;gap:9px;justify-content:flex-end}
+
+  /* ===== mobile (toggled) — ONE DOM, CSS reflow table -> ranked cards ===== */
+  .app.m{grid-template-columns:1fr;max-width:430px;margin:0 auto;border-left:1px solid var(--line);
+    border-right:1px solid var(--line);box-shadow:0 0 40px rgba(0,0,0,.08)}
+  .app.m .rail{display:none}
+  .app.m .ctx{padding:12px 16px;flex-wrap:wrap;gap:6px 12px}
+  .app.m .atom{width:100%;max-width:100%}
+  /* basis line pinned (the floor) */
+  .app.m .basis{position:sticky;top:0;z-index:6}
+  /* table -> cards */
+  .app.m table.cmp,.app.m .cmp thead,.app.m .cmp tbody,.app.m .cmp tr,.app.m .cmp th,.app.m .cmp td,.app.m .cmp col{display:block;width:auto}
+  .app.m .cmp thead{display:none}
+  .app.m .cmp tbody tr{border:1px solid var(--line);border-radius:var(--r);background:var(--surface);
+    margin:12px 0;padding:6px 4px;box-shadow:var(--shadow)}
+  .app.m .cmp tbody th,.app.m .cmp tbody td{border-bottom:1px solid var(--line-2);padding:11px 14px}
+  .app.m .cmp tbody tr>td::before{content:attr(data-dim);display:block;font-size:10px;letter-spacing:.05em;
+    text-transform:uppercase;color:var(--ink-3);font-weight:700;margin-bottom:5px}
+  .app.m .cmp tbody tr td:last-child,.app.m .band table.cmp tbody th,.app.m .band table.cmp tbody td{border-bottom:1px solid var(--line-2)}
+  .app.m .wbar .track{width:100%}
+  .app.m .cust-btn{margin-left:0}
+  .app.m .basis-top{flex-wrap:wrap}
+  /* mobile Customize = bottom sheet + explicit Apply */
+  .app.m .cust{position:fixed;left:0;right:0;bottom:0;max-width:430px;margin:0 auto;background:var(--surface);
+    border-top:1px solid var(--line);border-radius:18px 18px 0 0;box-shadow:0 -10px 40px rgba(0,0,0,.15);
+    padding:18px;z-index:20;margin-top:0}
+  .app.m .delta{max-width:calc(100% - 24px)}
+
+  @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important;scroll-behavior:auto!important}}
+</style>
+</head>
+<body>
+
+<div class="app" id="app">
+  <!-- icon rail — verbatim structure from verify-workspace -->
+  <nav class="rail" aria-label="Primary">
+    <div class="mark">D</div>
+    <button title="Listings"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/></svg></button>
+    <button title="Offers"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M4 4h16v16H4z"/><path d="M8 9h8M8 13h5"/></svg></button>
+    <button class="on" title="Compare"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M9 3v18M15 3v18M4 7h5M4 12h5M4 17h5M15 9h5M15 14h5"/></svg></button>
+    <div class="spacer"></div>
+    <button title="Settings"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19 12a7 7 0 00-.1-1l2-1.6-2-3.4-2.4 1a7 7 0 00-1.7-1l-.3-2.5h-4l-.3 2.5a7 7 0 00-1.7 1l-2.4-1-2 3.4 2 1.6a7 7 0 000 2l-2 1.6 2 3.4 2.4-1a7 7 0 001.7 1l.3 2.5h4l.3-2.5a7 7 0 001.7-1l2.4 1 2-3.4-2-1.6a7 7 0 00.1-1z"/></svg></button>
+  </nav>
+
+  <div class="main">
+    <!-- context bar -->
+    <header class="ctx">
+      <span class="prop">1842 Pine Street, Santa Monica</span>
+      <span class="setmark" id="setMark"><i></i> <span id="setMarkTxt">Comparison of 3 offers in so far</span></span>
+      <div class="viewtog" role="group" aria-label="Preview width" style="margin-left:auto">
+        <button id="vDesk" class="on" onclick="setView('desk')">Desktop</button>
+        <button id="vMob" onclick="setView('mob')">Mobile</button>
+      </div>
+      <div class="scn" id="scn" role="group" aria-label="Scenario"></div>
+    </header>
+
+    <!-- dev toolbar (agent mode only) -->
+    <div class="devbar" id="devbar">
+      <span class="tag">Dev harness</span>
+      <button onclick="toggleGrammar()" id="gsBtn">Grammar sheet</button>
+      <button onclick="runSelfCheck()">Run self-check</button>
+      <span id="devMsg"></span>
+    </div>
+
+    <!-- grammar sheet (dev-only; never in seller mode) -->
+    <section class="gsheet" id="gsheet" aria-label="State grammar sheet"></section>
+
+    <!-- seller principle frame (seller mode only) -->
+    <div class="seller-frame" id="sellerFrame" style="display:none">
+      <div class="prin" id="sellerPrin"></div>
+      <div class="sub" id="sellerSub"></div>
+    </div>
+
+    <!-- basis header (agent, N>1) -->
+    <section class="basis" id="basis" aria-label="Ranking basis">
+      <div class="basis-top">
+        <div class="line" id="basisLine"></div>
+        <button class="cust-btn" id="custBtn" onclick="toggleCustomize()">
+          <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path d="M4 21v-7M4 10V3M12 21v-9M12 8V3M20 21v-5M20 12V3M1 14h6M9 8h6M17 16h6"/></svg>
+          Customize
+        </button>
+      </div>
+      <div class="wbars" id="wbars"></div>
+      <div class="cust" id="cust">
+        <div class="hint">
+          <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg>
+          Reorder your priorities. The <b>order alone</b> decides the ranking — there are no scores and no magnitudes to set. Move a priority up and the offers re-rank to match.
+        </div>
+        <div class="prilist" id="prilist"></div>
+        <div class="row-act">
+          <div class="presets">
+            <button class="btn btn-ghost" onclick="applyPreset('e1')">Preset: net-first</button>
+            <button class="btn btn-ghost" onclick="applyPreset('e2')">Preset: close-first</button>
+          </div>
+          <button class="btn btn-ghost" onclick="resetWeights()">Reset</button>
+          <button class="btn btn-prim" onclick="toggleCustomize()">Done</button>
+        </div>
+      </div>
+    </section>
+
+    <div class="scroll" id="scroll">
+      <div class="ctxbar-sub" id="subLine"></div>
+      <div class="body-wrap" id="body"></div>
+    </div>
+
+    <!-- share footer -->
+    <div class="foot" id="foot">
+      <span class="hint" id="shareHint"></span>
+      <button class="share" id="shareBtn" onclick="tryShare()">
+        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path d="M4 12v8a2 2 0 002 2h12a2 2 0 002-2v-8M16 6l-4-4-4 4M12 2v13"/></svg>
+        <span id="shareLbl">Share comparison</span>
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- per-offer atom (Clause-1 detail pane / drill-down) -->
+<aside class="atom" id="atom" aria-label="Offer detail"></aside>
+
+<!-- pairwise delta -->
+<div class="delta" id="delta" role="status"></div>
+
+<!-- share dialog (mock only — no real emails, no storage, no network POST) -->
+<div class="dim" id="dim" onclick="if(event.target===this)closeDlg()">
+  <div class="dlg" id="dlg"></div>
+</div>
+
+<script>
+"use strict";
+/* =========================================================================
+   PHASE 0 — the authoritative fixture/state schema + all six fixtures.
+   One render function is a pure function of one fixture object.
+   Net is DISPLAYED (Appendix-A figures), never computed here.
+   netAggregate is PER OFFER. orderGroups are DECLARED, not derived.
+   conflicting is NEVER auto-collapsed to unreadable.
+   ========================================================================= */
+
+const DIMS = [
+  {key:'net',           label:'net to seller'},
+  {key:'contingencies', label:'contingencies'},
+  {key:'financing',     label:'financing strength'},
+  {key:'close',         label:'close speed'},
+];
+/* weights encode PRIORITY ORDER ONLY (a strict permutation of 4..1). The ranker is
+   lexicographic — magnitude is never read, only the resulting order of dimensions. */
+const DEFAULT_WEIGHTS = {net:4, contingencies:3, financing:2, close:1};   // DEC-8 default order
+const PRESET_E1 = {net:4, contingencies:3, financing:2, close:1};         // net-first   -> Chen > Reyes > Okafor
+const PRESET_E2 = {close:4, contingencies:3, financing:2, net:1};         // close-first -> Okafor > Reyes > Chen
+
+/* provenance helper */
+const P = (cls, ref) => ({class:cls, ref});
+
+/* ---- shared cell definitions reused across fixtures ---- */
+function cellVerified(value, ordinal, leader, prov, extra){ return Object.assign({fieldState:'verified', value, ordinal, leader, provenance:prov}, extra||{}); }
+
+/* Base offer cast (Appendix A). Net figures DISPLAYED, not computed. */
+function baseOffers(){
+  return {
+    chen:   {id:'chen',   buyerName:'Chen',   offerStatus:'vouched'},
+    reyes:  {id:'reyes',  buyerName:'Reyes',  offerStatus:'vouched'},
+    okafor: {id:'okafor', buyerName:'Okafor', offerStatus:'vouched'},
+  };
+}
+
+/* Cell matrices per fixture. ordinal: 1=best within dimension (drives the lexical ranker). */
+function cleanCells(){
+  return {
+    chen:{
+      net:          cellVerified('$1,274,000', 1, true,  P('system','net = §3A price − §3G(1) credit − §3G(3) comp')),
+      contingencies:cellVerified('appraisal contingency at price', 3, false, P('contract','§3L(2) → ¶8B')),
+      financing:    cellVerified('no loan contingency', 2, false, P('contract','§3L(1) → ¶8A')),
+      close:        cellVerified('30-day close', 3, false, P('contract','§3B')),
+    },
+    reyes:{
+      net:          cellVerified('$1,238,125', 2, false, P('system','net = §3A price − §3G(1) credit − §3G(3) comp')),
+      contingencies:cellVerified('appraisal contingency waived', 2, false, P('contract','§3L(2) → ¶8B')),
+      financing:    cellVerified('17-day loan contingency', 3, false, P('contract','§3L(1) → ¶8A')),
+      close:        cellVerified('21-day close', 2, false, P('contract','§3B')),
+    },
+    okafor:{
+      net:          cellVerified('$1,218,750', 3, false, P('system','net = §3A price − §3G(3) comp')),
+      contingencies:cellVerified('no contingencies', 1, true, P('contract','§3L → ¶8')),
+      financing:    cellVerified('all-cash', 1, true, P('contract','§3E → ¶5C')),
+      close:        cellVerified('14-day close', 1, true, P('contract','§3B')),
+    },
+  };
+}
+
+/* A-2 / A-3: Chen's buyer-broker comp is unreadable -> Chen net suppressed (per-offer).
+   conflicting resolved UPSTREAM at verify -> terminal unreadable (NOT auto-collapsed here). */
+function suppressedCells(){
+  const c = cleanCells();
+  c.chen.net = {
+    fieldState:'unreadable',
+    reason:"net can't be determined: buyer-broker comp unread",
+    ordinal:null, leader:false,
+    provenance:P('system','§3G(3) → ¶ pending re-grounding'),
+    caveat:'partial — net unread',
+    verify:true,
+  };
+  return c;
+}
+
+const FIXTURES = {
+  /* ---------- A-1 clean ranking ---------- */
+  a1:{
+    id:'a1', label:'A-1', roleMode:'agent', setStatus:'provisional', n:3, allRead:true,
+    dimensions:DIMS,
+    offers:{
+      chen:   Object.assign(baseOffers().chen,   {netAggregate:{status:'computed', value:'$1,274,000'}}),
+      reyes:  Object.assign(baseOffers().reyes,  {netAggregate:{status:'computed', value:'$1,238,125'}}),
+      okafor: Object.assign(baseOffers().okafor, {netAggregate:{status:'computed', value:'$1,218,750'}}),
+    },
+    cells: cleanCells(),
+    orderGroups:[ {offer:'chen',pos:1}, {offer:'reyes',pos:2}, {offer:'okafor',pos:3} ],
+    previews:{
+      chen:'Above Reyes on higher net and stronger financing',
+      reyes:'Above Okafor on higher net',
+      okafor:'Leads contingencies, financing and close — trails on net',
+    },
+    deltas:{
+      'chen|reyes':'Ranked above Reyes on: <b>higher net (+$36k)</b>, <b>stronger financing</b> (no loan contingency vs. a 17-day loan contingency); even on contingencies; Reyes leads on: <b>faster close</b> (21 vs 30 days).',
+      'reyes|okafor':'Ranked above Okafor on: <b>higher net (+$19k)</b>; Okafor leads on: <b>contingencies</b>, <b>financing</b> (all-cash), and <b>faster close</b> (14 vs 21 days). Net is your top priority, so it decides here.',
+    },
+    other:[ {who:'Chen', q:'"Buyer would love a two-week rent-back if that helps you move."'},
+            {who:'Reyes', q:'"We\'ll leave the playset and both mounted TVs."'} ],
+  },
+
+  /* ---------- A-2 suppressed dimension ---------- */
+  a2:{
+    id:'a2', label:'A-2', roleMode:'agent', setStatus:'provisional', n:3, allRead:false,
+    dimensions:DIMS,
+    offers:{
+      chen:   Object.assign(baseOffers().chen,   {netAggregate:{status:'suppressed', reason:'buyer-broker comp unread'}}),
+      reyes:  Object.assign(baseOffers().reyes,  {netAggregate:{status:'computed', value:'$1,238,125'}}),
+      okafor: Object.assign(baseOffers().okafor, {netAggregate:{status:'computed', value:'$1,218,750'}}),
+    },
+    cells: suppressedCells(),
+    /* DECLARED order: net is Chen's headline strength; unread -> Chen can't hold #1. Neighbours
+       around Chen are separated by contingencies/financing/close, NOT by net -> no withhold (that is A-3). */
+    orderGroups:[ {offer:'reyes',pos:1}, {offer:'okafor',pos:2}, {offer:'chen',pos:3,caveat:'partial — net unread'} ],
+    previews:{
+      reyes:'Above Okafor on higher net',
+      okafor:'Leads contingencies, financing and close',
+      chen:'Can\'t be placed on net until buyer-broker comp is read — still ranks on close and contingencies',
+    },
+    deltas:{
+      'reyes|okafor':'Ranked above Okafor on: <b>higher net (+$19k)</b>; Okafor leads on: <b>contingencies</b>, <b>financing</b>, and <b>faster close</b>.',
+      'okafor|chen':'This order rests on contingencies, financing and close — <b>not net</b>. Chen\'s net can\'t be read, so net doesn\'t decide this pair. <b>Verify to resolve.</b>',
+    },
+    other:[ {who:'Chen', q:'"Buyer would love a two-week rent-back if that helps you move."'} ],
+  },
+
+  /* ---------- A-3 withheld order ---------- */
+  a3:{
+    id:'a3', label:'A-3', roleMode:'agent', setStatus:'provisional', n:3, allRead:false,
+    dimensions:DIMS,
+    offers:{
+      chen:   Object.assign(baseOffers().chen,   {netAggregate:{status:'suppressed', reason:'buyer-broker comp unread'}}),
+      reyes:  Object.assign(baseOffers().reyes,  {netAggregate:{status:'computed', value:'$1,238,125'}}),
+      okafor: Object.assign(baseOffers().okafor, {netAggregate:{status:'computed', value:'$1,218,750'}}),
+    },
+    cells: suppressedCells(),
+    /* DECLARED withhold: Reyes & Chen close enough that net would decide -> bracket; Okafor below. */
+    orderGroups:[
+      {withheld:{members:['reyes','chen'], reason:'Can\'t be separated on your priorities until buyer-broker comp is read for Chen'}},
+      {offer:'okafor',pos:3},
+    ],
+    previews:{
+      reyes:'Bracketed with Chen — net would decide, but Chen\'s net can\'t be read',
+      chen:'Bracketed with Reyes — net would decide, but Chen\'s net can\'t be read',
+      okafor:'Below the bracket — ranks on its own read terms',
+    },
+    deltas:{},
+    other:[],
+  },
+
+  /* ---------- A-4 tie / near-tie ---------- */
+  a4:{
+    id:'a4', label:'A-4', roleMode:'agent', setStatus:'provisional', n:3, allRead:true,
+    dimensions:DIMS,
+    offers:{
+      chen:   Object.assign(baseOffers().chen,   {netAggregate:{status:'computed', value:'$1,274,000'}}),
+      reyes:  Object.assign(baseOffers().reyes,  {netAggregate:{status:'computed', value:'$1,238,125'}}),
+      okafor: Object.assign(baseOffers().okafor, {netAggregate:{status:'computed', value:'$1,218,750'}}),
+    },
+    cells: cleanCells(),
+    orderGroups:[
+      {nearTie:{members:['chen','reyes'], note:'Reyes and Chen are very close on your priorities'}},
+      {offer:'okafor',pos:3},
+    ],
+    previews:{
+      chen:'Near-tie with Reyes on your priorities',
+      reyes:'Near-tie with Chen on your priorities',
+      okafor:'Below the near-tie band',
+    },
+    deltas:{
+      'chen|reyes':'Nearly even — Chen leads on <b>net</b> and <b>financing</b>, Reyes leads on <b>close</b>, even on contingencies; it\'s close.',
+    },
+    other:[],
+  },
+
+  /* ---------- A-5 N=1 degenerate ---------- */
+  a5:{
+    id:'a5', label:'A-5', roleMode:'agent', setStatus:'provisional', n:1, allRead:true,
+    dimensions:DIMS,
+    offers:{ reyes: Object.assign(baseOffers().reyes, {netAggregate:{status:'computed', value:'$1,238,125'}}) },
+    cells:{ reyes: cleanCells().reyes },
+    single:true,
+    other:[ {who:'Reyes', q:'"We\'ll leave the playset and both mounted TVs."'} ],
+  },
+
+  /* ---------- A-6 forwarded seller share (seller render path) ---------- */
+  a6:{
+    id:'a6', label:'A-6', roleMode:'seller', setStatus:'provisional', n:3, allRead:false,
+    dimensions:DIMS,
+    offers:{
+      chen:   Object.assign(baseOffers().chen,   {netAggregate:{status:'suppressed', reason:'buyer-broker comp unread'}}),
+      reyes:  Object.assign(baseOffers().reyes,  {netAggregate:{status:'computed', value:'$1,238,125'}}),
+      okafor: Object.assign(baseOffers().okafor, {netAggregate:{status:'computed', value:'$1,218,750'}}),
+    },
+    cells: suppressedCells(),
+    orderGroups:[ {offer:'reyes',pos:1}, {offer:'okafor',pos:2}, {offer:'chen',pos:3,caveat:'partial — net unread'} ],
+    previews:{
+      reyes:'Ranks highest on your stated priorities',
+      okafor:'All-cash, fastest close, no contingencies',
+      chen:'Not ranked on net — we couldn\'t read one figure that feeds it',
+    },
+    deltas:{},
+    other:[ {who:'Chen', q:'"Buyer would love a two-week rent-back if that helps you move."'} ],
+    sellerPrinciple:'If we cannot trace how a ranking was determined, we will not present it.',
+    sellerSub:'Ranked by the priorities your agent set. This is an input to your decision — not the decision. No scores, and nothing you have to accept here.',
+  },
+};
+
+/* =========================================================================
+   RENDER STATE
+   ========================================================================= */
+let CUR = 'a1';
+let view = 'desk';
+let weights = Object.assign({}, DEFAULT_WEIGHTS);
+let liveOrder = null;   // for A-1 live re-rank
+
+function fx(){ return FIXTURES[CUR]; }
+function esc(s){ return String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])); }
+
+/* ---- agent-only chrome, genuinely attached/detached from the surface DOM ---- */
+let CHROME=null, MAIN=null, ANCHOR_SELLER=null, ANCHOR_SCROLL=null;
+function initChromeRefs(){
+  MAIN=document.querySelector('.main');
+  ANCHOR_SELLER=document.getElementById('sellerFrame');
+  ANCHOR_SCROLL=document.getElementById('scroll');
+  CHROME={ devbar:document.getElementById('devbar'), gsheet:document.getElementById('gsheet'), basis:document.getElementById('basis') };
+}
+function attachChrome(node, want, anchorFn){
+  if(want){ if(!node.isConnected) MAIN.insertBefore(node, anchorFn()); }
+  else { if(node.isConnected) node.remove(); }
+}
+/* mode: 'full' (agent N>1) | 'nobasis' (agent N=1) | 'none' (seller surface) */
+function setSurfaceChrome(mode){
+  if(!CHROME) return;
+  const wantDev = mode!=='none';
+  const wantBasis = mode==='full';
+  attachChrome(CHROME.basis,  wantBasis, ()=>ANCHOR_SCROLL);
+  attachChrome(CHROME.gsheet, wantDev,   ()=>ANCHOR_SELLER);
+  attachChrome(CHROME.devbar, wantDev,   ()=> CHROME.gsheet.isConnected ? CHROME.gsheet : ANCHOR_SELLER);
+}
+
+/* =========================================================================
+   SVG snippets
+   ========================================================================= */
+const IC = {
+  doc:'<svg fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path d="M14 3v4a1 1 0 001 1h4M5 3h9l5 5v11a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2z"/></svg>',
+  sys:'<svg fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M12 3v3M12 18v3M3 12h3M18 12h3"/></svg>',
+  eye:'<svg fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12z"/><path d="M4 4l16 16"/></svg>',
+  conflict:'<svg fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path d="M12 9v4M12 17h.01M10.3 3.9 1.8 18a2 2 0 001.7 3h17a2 2 0 001.7-3L14.7 3.9a2 2 0 00-3.4 0z"/></svg>',
+  chev:'<svg fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path d="M9 18l6-6-6-6"/></svg>',
+  ext:'<svg fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6M15 3h6v6M10 14L21 3"/></svg>',
+  lock:'<svg fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>',
+};
+
+/* =========================================================================
+   THE RANKER — lexicographic by weight-rank (deterministic; surfaces no number).
+   Sort offers by the highest-weighted dimension's ordinal; ties break by next.
+   Reproduces A-1 (net-first) and E-2 (close-first) exactly. Runs on fully-read sets.
+   ========================================================================= */
+function computeOrder(f, w){
+  const dims = f.dimensions.slice().sort((a,b)=> w[b.key]-w[a.key]);
+  const ids = Object.keys(f.offers);
+  ids.sort((x,y)=>{
+    for(const d of dims){
+      const ox = f.cells[x][d.key].ordinal, oy = f.cells[y][d.key].ordinal;
+      if(ox==null||oy==null) continue;
+      if(ox!==oy) return ox-oy;
+    }
+    return 0;
+  });
+  return ids;
+}
+
+/* =========================================================================
+   CELL RENDERER — the shared path for all SEVEN §2.1 treatments.
+   Every cell carries a provenance handle (omitting it is a Clause-1 failure).
+   ========================================================================= */
+function provHandle(prov, offerId, dimKey){
+  const sys = prov.class!=='contract';
+  const icon = prov.class==='contract'?IC.doc : IC.sys;
+  const label = prov.class==='contract' ? prov.ref
+              : prov.class==='structural' ? 'structural — '+prov.ref
+              : prov.ref;
+  return `<button class="cv-prov${sys?' sys':''}" data-prov="1" title="Trace to source"
+    onclick="openAtom('${offerId}','${dimKey}')">${icon}${esc(label)}</button>`;
+}
+
+function renderCell(offerId, dimKey, sellerMode){
+  const cell = fx().cells[offerId][dimKey];
+  const st = cell.fieldState;
+  let head='';
+  if(st==='verified'){
+    head = `<span class="cv-val">${esc(cell.value)}</span>` +
+      (cell.leader?`<span class="cv-lead" aria-hidden="true"><span class="dia">◆</span></span><span class="sr-lead" style="position:absolute;left:-9999px">leads this priority</span>`:'');
+  } else if(st==='corrected'){
+    head = `<span class="cv-val">${esc(cell.value)}</span> ` +
+      `<span class="chip c-corr"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path d="M12 20h9M16.5 3.5a2.1 2.1 0 013 3L7 19l-4 1 1-4z"/></svg> corrected</span>` +
+      `<div class="orig">corrected · original: ${esc(cell.original||'')}</div>`;
+  } else if(st==='empty'){
+    head = `<span class="state-empty">Not specified on this form</span>`;
+  } else if(st==='not-captured'){
+    head = `<span class="cv-state-notcaptured">${IC.sys}Not captured on this form</span>`;
+  } else if(st==='not-applicable'){
+    head = `<span class="state-na">Not applicable — ${esc(cell.reason||'')}</span>`;
+  } else if(st==='unreadable'){
+    const tail = cell.reason ? ' — '+esc(cell.reason) : '';
+    head = `<span class="state-unread">${IC.eye}We couldn't read this field${tail}</span>`;
+  } else if(st==='conflicting'){
+    head = `<span class="cv-state-conflict">${IC.conflict}Conflicting values — needs resolution</span>`;
+  }
+  // suppression caveat + verify-to-resolve (tier 2) — hidden affordance suppressed in seller mode? seller sees the caveat text but no "verify" action
+  let cav='';
+  if(cell.caveat){
+    cav = `<div class="cv-cav"><span>${esc(cell.caveat)}</span>` +
+      (cell.verify && !sellerMode ? `<a class="vfy" href="#verify" onclick="gotoVerify('${offerId}','${dimKey}');return false;">${IC.ext}verify to resolve</a>`:'') +
+      `</div>`;
+  }
+  const prov = provHandle(cell.provenance, offerId, dimKey);
+  return `<td data-dim="${esc(dimByKey(dimKey).label)}">${head}${cav}<div>${prov}</div></td>`;
+}
+
+function dimByKey(k){ return DIMS.find(d=>d.key===k); }
+
+/* =========================================================================
+   SPINE cell (offer header)
+   ========================================================================= */
+/* adjacent-order reason preview — hand-tuned copy at rest; regenerated to track a live re-rank
+   so a preview never claims a neighbour relationship the current order contradicts. */
+let activePreviews = {};
+function genPreviews(f, order, w){
+  const dims = orderedDims(w);
+  const out = {};
+  order.forEach((id,i)=>{
+    const below = order[i+1];
+    if(below){
+      let reason=null;
+      for(const d of dims){
+        const a=f.cells[id][d.key].ordinal, b=f.cells[below][d.key].ordinal;
+        if(a!=null && b!=null && a<b){ reason=d.label; break; }
+      }
+      out[id] = `Above ${f.offers[below].buyerName}` + (reason?` on ${reason}`:'');
+    } else {
+      const leads = dims.filter(d=>f.cells[id][d.key].leader).map(d=>d.label);
+      out[id] = leads.length ? `Leads ${leads.join(', ')} — trails on ${dims[0].label}`
+                             : `Ranks last on your current priorities`;
+    }
+  });
+  return out;
+}
+
+function renderSpine(offerId, posLabel, group, sellerMode){
+  const o = fx().offers[offerId];
+  const prev = activePreviews[offerId];
+  const nyv = o.offerStatus==='not-yet-verified'
+    ? `<div class="nyv">Not yet verified</div>` : '';
+  const expand = sellerMode ? '' :
+    `<button class="expand" onclick="openAtom('${offerId}')">${IC.chev} Why this position</button>`;
+  return `<th scope="row" class="spine">
+    <div class="pos">
+      <span class="num">${posLabel}</span>
+      <div class="who">
+        <div class="name">${esc(o.buyerName)}</div>
+        ${prev?`<div class="prev"><span class="arw">▸</span> ${esc(prev)}</div>`:''}
+        ${nyv}
+        ${expand}
+      </div>
+    </div>
+  </th>`;
+}
+
+/* =========================================================================
+   MAIN RENDER
+   ========================================================================= */
+function render(){
+  const f = fx();
+  const seller = f.roleMode==='seller';
+
+  // chrome is REMOVED from the DOM (not display:none) so the seller surface genuinely
+  // does not contain the agent-only controls (grammar sheet, Customize, dev harness).
+  //   seller  -> no dev-bar, no grammar sheet, no basis/Customize
+  //   N=1     -> dev-bar + grammar sheet stay, but no ranking/weighting basis header
+  //   agent N>1 -> full chrome
+  setSurfaceChrome(seller ? 'none' : (f.single ? 'nobasis' : 'full'));
+  const sf=document.getElementById('sellerFrame');
+  sf.style.display = seller ? 'block':'none';
+  if(!seller){ document.getElementById('sellerPrin').textContent=''; document.getElementById('sellerSub').textContent=''; }
+
+  // set-provisional marker (Fork K) — always distinct from offer-level markers
+  document.getElementById('setMarkTxt').textContent = `Comparison of ${f.n} offer${f.n>1?'s':''} in so far`;
+  document.getElementById('setMark').style.display = f.single ? 'none':'inline-flex';
+
+  // scenario selector
+  renderScn();
+
+  if(seller){ renderSeller(f); return; }
+  if(f.single){ renderSingle(f); return; }
+
+  renderAgent(f);
+}
+
+function renderScn(){
+  const el = document.getElementById('scn');
+  el.innerHTML = Object.keys(FIXTURES).map(id=>{
+    const lbl = FIXTURES[id].label;
+    return `<button class="${id===CUR?'on':''}" onclick="setScn('${id}')" title="${id}">${lbl}</button>`;
+  }).join('');
+}
+
+/* ---- agent (N>1) ---- */
+function renderAgent(f){
+  // basis line
+  document.getElementById('basisLine').innerHTML =
+    `<span class="lbl">Ranked by:</span> ` +
+    orderedDims(weights).map(d=>`<b>${esc(d.label)}</b>`).join(' <span class="sep">▸</span> ');
+  renderWbars();
+  renderPriorityEditor();
+
+  document.getElementById('subLine').textContent = 'Down a column: who leads this priority. Across a row: everything about one offer.';
+
+  document.getElementById('body').innerHTML = buildTable(f, false) + buildOther(f, false);
+  updateShareGate(f);
+}
+
+/* dimensions in current weight order (basis line + header follow the weighting) */
+function orderedDims(w){ return DIMS.slice().sort((a,b)=> w[b.key]-w[a.key]); }
+
+function renderWbars(){
+  const max = Math.max(...Object.values(weights));
+  document.getElementById('wbars').innerHTML = orderedDims(weights).map(d=>{
+    const pct = Math.round(100*weights[d.key]/max);
+    return `<div class="wbar"><span class="cap">${esc(d.label)}</span>
+      <div class="track"><div class="fillw" style="width:${pct}%"></div></div></div>`;
+  }).join('');
+}
+
+function renderPriorityEditor(){
+  const ord = orderedDims(weights);
+  document.getElementById('prilist').innerHTML = ord.map((d,i)=>{
+    const up=i>0, down=i<ord.length-1;
+    return `<div class="prirow">
+      <span class="prirank">${i+1}</span>
+      <span class="priname">${esc(d.label)}</span>
+      <span class="pribtns">
+        <button class="pribtn" ${up?'':'disabled'} aria-label="Raise ${esc(d.label)}" onclick="moveDim('${d.key}',-1)">▲</button>
+        <button class="pribtn" ${down?'':'disabled'} aria-label="Lower ${esc(d.label)}" onclick="moveDim('${d.key}',1)">▼</button>
+      </span>
+    </div>`;
+  }).join('');
+}
+/* reorder a priority up (-1) or down (+1); reassigns a clean 4..1 permutation and re-ranks */
+function moveDim(key, dir){
+  const ord = orderedDims(weights).map(d=>d.key);
+  const i=ord.indexOf(key), j=i+dir;
+  if(j<0||j>=ord.length) return;
+  [ord[i],ord[j]]=[ord[j],ord[i]];
+  ord.forEach((k,idx)=> weights[k]=ord.length-idx);
+  applyWeights();
+}
+
+/* ---- build the ranked table ---- */
+function buildTable(f, seller){
+  const order = orderedDims(weights);
+  // previews: hand-tuned fixture copy at rest; generated (order-accurate) after a live re-rank
+  activePreviews = (f.allRead && liveOrder) ? genPreviews(f, liveOrder, weights) : (f.previews||{});
+  const head = `<thead><tr>
+    <th class="spine-h">${f.n} offers · ranked</th>
+    ${order.map(d=>`<th>${esc(d.label)}</th>`).join('')}
+  </tr></thead>`;
+
+  // resolve render units from orderGroups (declared) — or live order for A-1
+  let groups = f.orderGroups;
+  if(f.allRead && liveOrder){
+    groups = liveOrder.map((id,i)=>({offer:id, pos:i+1}));
+  }
+
+  let bodyRows = '';
+  groups.forEach(g=>{
+    if(g.offer){
+      bodyRows += `<tr data-offer="${g.offer}">${renderSpine(g.offer, g.pos, null, seller)}${order.map(d=>renderCell(g.offer,d.key,seller)).join('')}</tr>`;
+      if(g.caveat){ /* caveat already in spine preview + net cell */ }
+    } else if(g.withheld){
+      bodyRows += buildBand(f, order, g.withheld, 'withheld', seller);
+    } else if(g.nearTie){
+      bodyRows += buildBand(f, order, g.nearTie, 'tie', seller);
+    }
+  });
+
+  const colspan = order.length+1;
+  return `<table class="cmp"><colgroup><col class="spine">${order.map(()=>'<col>').join('')}</colgroup>
+    ${head}<tbody>${bodyRows}</tbody></table>`;
+}
+
+/* withheld / near-tie band — replaces the two positions with a bracketed group */
+function buildBand(f, order, spec, kind, seller){
+  const members = spec.members;
+  const reason = spec.reason || spec.note;
+  const icon = kind==='tie' ? IC.sys : IC.lock;
+  const label = kind==='tie' ? 'Near-tie' : 'Order withheld';
+  const inner = `<table class="cmp"><colgroup><col class="spine">${order.map(()=>'<col>').join('')}</colgroup><tbody>` +
+    members.map(id=>`<tr data-offer="${id}">${renderSpine(id, kind==='tie'?'≈':'—', null, seller)}${order.map(d=>renderCell(id,d.key,seller)).join('')}</tr>`).join('') +
+    `</tbody></table>`;
+  return `<tr class="bandrow"><td colspan="${order.length+1}">
+    <div class="band ${kind==='tie'?'tie':''}">
+      <div class="band-h">${icon}<span>${esc(reason)}</span>
+        <span class="bracket">[ ${members.map(m=>esc(f.offers[m].buyerName)).join(' — ')} ]</span></div>
+      ${inner}
+    </div></td></tr>`;
+}
+
+/* ---- Other terms (Fork J — verbatim, never scored) ---- */
+function buildOther(f, seller){
+  if(!f.other || !f.other.length) return '';
+  return `<div class="other">
+    <h4>Other terms — not ranked</h4>
+    <div class="note">Quoted from the contract, verbatim. Present to read; never scored into the order.</div>
+    ${f.other.map(t=>`<div class="otrow"><div class="who">${esc(t.who)}</div><div class="q"><span class="quote">${esc(t.q)}</span></div></div>`).join('')}
+  </div>`;
+}
+
+/* ---- single offer (N=1) ---- */
+function renderSingle(f){
+  const id = Object.keys(f.offers)[0];
+  const o = f.offers[id];
+  document.getElementById('subLine').textContent='';
+  const rows = DIMS.map(d=>{
+    const c = f.cells[id][d.key];
+    const val = c.fieldState==='verified' ? `<span class="cv-val">${esc(c.value)}</span>` : renderCellInline(c);
+    return `<div class="frow"><div class="k">${esc(d.label)}</div><div class="v">${val}
+      <div>${provHandle(c.provenance,id,d.key)}</div></div></div>`;
+  }).join('');
+  document.getElementById('body').innerHTML = `<div class="single">
+    <div class="head">${esc(o.buyerName)}</div>
+    <div class="oneline">${IC.sys} Only one offer is in this comparison</div>
+    ${rows}
+    ${buildOther(f,false)}
+  </div>`;
+  updateShareGate(f);
+}
+function renderCellInline(c){
+  if(c.fieldState==='empty') return '<span class="state-empty">Not specified on this form</span>';
+  if(c.fieldState==='not-applicable') return `<span class="state-na">Not applicable — ${esc(c.reason||'')}</span>`;
+  return `<span class="cv-val">${esc(c.value||'')}</span>`;
+}
+
+/* ---- seller render path (A-6) — OMITS scores/accept/Customize/corrections/grammar sheet from DOM ---- */
+function renderSeller(f){
+  document.getElementById('sellerPrin').textContent = f.sellerPrinciple;
+  document.getElementById('sellerSub').textContent  = f.sellerSub;
+  document.getElementById('subLine').textContent = 'Ranked by the priorities your agent set.';
+  // seller sees a basis LINE (never hidden) but no Customize control and no weight editing.
+  // Build a read-only table (no expand affordance, no verify action).
+  const order = orderedDims(DEFAULT_WEIGHTS);
+  const basisTxt = `<div style="padding:14px 22px 0;font-size:13.5px"><span style="color:var(--ink-2)">Ranked by:</span> `+
+    order.map(d=>`<b>${esc(d.label)}</b>`).join(' <span style="color:var(--ink-3)">▸</span> ')+`</div>`;
+  document.getElementById('body').innerHTML = basisTxt + buildTable(f, true) + buildOther(f, true);
+  // share footer in seller mode -> a call prompt style, no acknowledgment; keep it neutral
+  updateShareGate(f);
+}
+
+/* =========================================================================
+   PER-OFFER ATOM (Clause-1 detail — Fork H)
+   ========================================================================= */
+function openAtom(offerId, dimKey){
+  const f = fx();
+  if(f.roleMode==='seller') return; // seller path has no expand affordance
+  const o = f.offers[offerId];
+  const fields = DIMS.map(d=>{
+    const c = f.cells[offerId][d.key];
+    return `<div class="atom-f">
+      <div class="k">${esc(d.label)}${dimKey===d.key?' ·':''}</div>
+      <div class="v">${atomVal(c)}</div>
+      <div class="p">${c.provenance.class==='contract'?IC.doc:IC.sys} ${esc(c.provenance.ref)}</div>
+      ${c.caveat?`<div class="cv-cav" style="margin-top:6px"><span>${esc(c.caveat)}</span></div>`:''}
+    </div>`;
+  }).join('');
+  // financing DETAIL fields (loan amount, type) — not-applicable for all-cash; lives ONLY here, never the matrix cell
+  let detail='';
+  if(offerId==='okafor'){
+    detail = `<div class="atom-f"><div class="k">financing detail — loan amount</div>
+      <div class="v"><span class="state-na">Not applicable — all-cash purchase</span></div>
+      <div class="p">${IC.sys} structural — no financing on this offer</div></div>
+      <div class="atom-f"><div class="k">financing detail — loan type</div>
+      <div class="v"><span class="state-na">Not applicable — all-cash purchase</span></div>
+      <div class="p">${IC.sys} structural — no financing on this offer</div></div>`;
+  }
+  document.getElementById('atom').innerHTML = `
+    <div class="atom-h">
+      <div><div class="t">${esc(o.buyerName)}</div>
+        <div class="s">The reading for this offer — every value traces to the contract.</div></div>
+      <button onclick="closeAtom()">Close</button>
+    </div>
+    <div class="atom-body">
+      ${fields}${detail}
+      <div class="atom-vlink"><a href="#verify" onclick="gotoVerify('${offerId}');return false;">${IC.ext} Open in the verify workspace</a></div>
+    </div>`;
+  document.getElementById('atom').classList.add('on');
+}
+function atomVal(c){
+  const s=c.fieldState;
+  if(s==='verified') return `<span class="cv-val">${esc(c.value)}</span>`+(c.leader?' <span class="cv-lead"><span class="dia">◆</span> leads</span>':'');
+  if(s==='corrected') return `<span class="cv-val">${esc(c.value)}</span> <span class="chip c-corr">corrected</span> <div class="orig">original: ${esc(c.original||'')}</div>`;
+  if(s==='empty') return '<span class="state-empty">Not specified on this form</span>';
+  if(s==='not-captured') return `<span class="cv-state-notcaptured">${IC.sys}Not captured on this form</span>`;
+  if(s==='not-applicable') return `<span class="state-na">Not applicable — ${esc(c.reason||'')}</span>`;
+  if(s==='unreadable') return `<span class="state-unread">${IC.eye}We couldn't read this field${c.reason?' — '+esc(c.reason):''}</span>`;
+  if(s==='conflicting') return `<span class="cv-state-conflict">${IC.conflict}Conflicting values — needs resolution</span>`;
+  return '';
+}
+function closeAtom(){ document.getElementById('atom').classList.remove('on'); }
+function gotoVerify(offerId, dimKey){
+  closeAtom();
+  showDlg('good','Would open the verify workspace',
+    `In the product this jumps to <b>${esc(fx().offers[offerId].buyerName)}</b>'s verify workspace`+
+    (dimKey?`, focused on the unread <b>${esc(dimByKey(dimKey).label)}</b> field`:'')+
+    `. Corrections happen there — the contract is never edited here.`,
+    [['Close','ghost','closeDlg()']]);
+}
+
+/* =========================================================================
+   PAIRWISE DELTA (why above — on demand; terms only, signed, weighted-scoped)
+   ========================================================================= */
+function showDelta(aId, bId){
+  const f = fx();
+  let txt = (f.deltas||{})[aId+'|'+bId] || (f.deltas||{})[bId+'|'+aId];
+  if(!txt){
+    txt = 'This pair is separated on your weighted priorities. Open either offer for the full reading.';
+  }
+  const A = f.offers[aId].buyerName, B = f.offers[bId].buyerName;
+  document.getElementById('delta').innerHTML =
+    `<div class="dh"><span>${esc(A)} vs ${esc(B)} — why this order</span><button onclick="hideDelta()">Close</button></div>
+     <div class="dtxt">${txt}</div>`;
+  document.getElementById('delta').classList.add('on');
+}
+function hideDelta(){ document.getElementById('delta').classList.remove('on'); }
+
+/* delegate: click an offer row (or gap) -> delta with its neighbour */
+document.addEventListener('click', e=>{
+  const row = e.target.closest('tr[data-offer]');
+  if(!row) return;
+  if(e.target.closest('.cv-prov, .expand, a, button')) return; // provenance/expand handled separately
+  const f = fx();
+  if(f.roleMode==='seller' || f.single) return;
+  const order = liveOrder && f.allRead ? liveOrder : f.orderGroups.flatMap(g=> g.offer?[g.offer]:(g.withheld||g.nearTie).members);
+  const id = row.dataset.offer;
+  const idx = order.indexOf(id);
+  const neighbour = order[idx+1] || order[idx-1];
+  if(neighbour) showDelta(id, neighbour);
+});
+
+/* =========================================================================
+   CUSTOMIZE + LIVE RE-RANK (Fork E / DEC-14) — FLIP + rAF, reduced-motion aware
+   ========================================================================= */
+function toggleCustomize(){ document.getElementById('cust').classList.toggle('on'); }
+
+/* Re-rank on a priority change. The table is REBUILT so BOTH the columns and the basis
+   line follow the new priority order; the rows then FLIP-animate to their new positions
+   (transform only). Discrete reorder taps mean no rapid input to batch, but the rebuild is
+   still wrapped so reduced-motion cleanly skips the animation while keeping order + a11y. */
+function applyWeights(){
+  const f=fx();
+  renderWbars();
+  renderPriorityEditor();
+  document.getElementById('basisLine').innerHTML =
+    `<span class="lbl">Ranked by:</span> ` +
+    orderedDims(weights).map(d=>`<b>${esc(d.label)}</b>`).join(' <span class="sep">▸</span> ');
+
+  if(!f.allRead){ // declared-order fixtures: a re-rank is not asserted; only the columns refresh
+    document.getElementById('body').innerHTML = buildTable(f,false)+buildOther(f,false);
+    return;
+  }
+
+  // FIRST: capture current row positions by offer id (before the rebuild)
+  const tbody0 = document.querySelector('#body table.cmp tbody');
+  const first={};
+  if(tbody0) Array.from(tbody0.querySelectorAll('tr[data-offer]')).forEach(r=>first[r.dataset.offer]=r.getBoundingClientRect().top);
+
+  // rebuild: columns + rows now both follow the priority order; previews regenerate order-accurate
+  liveOrder = computeOrder(f, weights);
+  document.getElementById('body').innerHTML = buildTable(f,false)+buildOther(f,false);
+  announce('Order updated: '+liveOrder.map(id=>f.offers[id].buyerName).join(', '));
+
+  // LAST + INVERT + PLAY on the rows only
+  const reduce = window.matchMedia('(prefers-reduced-motion:reduce)').matches;
+  if(reduce) return;
+  const tbody1 = document.querySelector('#body table.cmp tbody');
+  if(!tbody1) return;
+  Array.from(tbody1.querySelectorAll('tr[data-offer]')).forEach(r=>{
+    const id=r.dataset.offer;
+    if(first[id]==null) return;
+    const dy=first[id]-r.getBoundingClientRect().top;
+    if(!dy) return;
+    r.style.transition='none';
+    r.style.transform=`translateY(${dy}px)`;
+    requestAnimationFrame(()=>{ r.style.transition='transform .42s cubic-bezier(.22,1,.36,1)'; r.style.transform=''; });
+  });
+}
+
+function applyPreset(which){
+  weights = Object.assign({}, which==='e2'?PRESET_E2:PRESET_E1);
+  applyWeights();
+}
+function resetWeights(){ weights=Object.assign({},DEFAULT_WEIGHTS); liveOrder=null; applyWeights(); }
+
+/* a11y announce */
+let liveRegion=null;
+function announce(msg){
+  if(!liveRegion){ liveRegion=document.createElement('div'); liveRegion.setAttribute('aria-live','polite');
+    liveRegion.style.cssText='position:absolute;left:-9999px'; document.body.appendChild(liveRegion); }
+  liveRegion.textContent=msg;
+}
+
+/* =========================================================================
+   SHARE GATE (mock only — no real emails / no storage / no network POST)
+   ========================================================================= */
+function updateShareGate(f){
+  const btn=document.getElementById('shareBtn');
+  const hint=document.getElementById('shareHint');
+  const shareIcon=`<svg fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path d="M4 12v8a2 2 0 002 2h12a2 2 0 002-2v-8M16 6l-4-4-4 4M12 2v13"/></svg>`;
+  const callIcon=`<svg fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path d="M22 16.9v3a2 2 0 01-2.2 2 19.8 19.8 0 01-8.6-3 19.5 19.5 0 01-6-6 19.8 19.8 0 01-3-8.6A2 2 0 014.1 2h3a2 2 0 012 1.7c.1.9.3 1.8.6 2.6a2 2 0 01-.5 2.1L8.1 9.9a16 16 0 006 6l1.5-1.1a2 2 0 012.1-.5c.8.3 1.7.5 2.6.6a2 2 0 011.7 2z"/></svg>`;
+  if(f.roleMode==='seller'){
+    btn.classList.remove('gated');
+    btn.innerHTML=`${callIcon} Call the agent`;
+    hint.innerHTML = `Read-only. This is an input to your decision — not a verdict.`;
+    return;
+  }
+  btn.innerHTML=`${shareIcon} Share comparison`;
+  // gate: any suppressed decisive dimension (withhold present) -> allowed only with preserved bracket (disclosure)
+  const hasWithhold = (f.orderGroups||[]).some(g=>g.withheld);
+  const hasSuppressed = Object.values(f.offers).some(o=>o.netAggregate && o.netAggregate.status==='suppressed');
+  if(f.single){ hint.innerHTML='One offer — the single-offer share path applies.'; btn.classList.remove('gated'); return; }
+  if(hasWithhold){
+    btn.classList.add('gated');
+    hint.innerHTML=`${IC.lock} A withheld pair travels with the comparison — the bracket and its reason are preserved for the seller.`;
+  } else if(hasSuppressed){
+    btn.classList.add('gated');
+    hint.innerHTML=`Allowed with disclosure — the suppressed net stays visible-but-excluded on the seller's view.`;
+  } else {
+    btn.classList.remove('gated');
+    hint.innerHTML=`All offers vouched · set marked "in so far" — the seller sees that it isn't final.`;
+  }
+}
+function tryShare(){
+  const f=fx();
+  if(f.roleMode==='seller'){
+    showDlg('good','Call the agent',
+      'On the seller surface this is a <b>tel:</b> prompt to your agent. There is no "accept" here — the decision is yours, and never the algorithm\'s.',
+      [['Close','ghost','closeDlg()']]); return;
+  }
+  showDlg('good','Share this comparison',
+    'Enter the seller\'s email. The link is <b>expiring and revocable</b>; a forward does not carry access (DEC-7). '+
+    '<i>Mock only — nothing is sent, stored, or POSTed from this file.</i>',
+    [['Cancel','ghost','closeDlg()'],['Create link (mock)','prim','mockShare()']], true);
+}
+function mockShare(){
+  showDlg('good','Link created (mock)',
+    'A live, branded comparison would be on its way — buyer names, the "Ranked by…" basis, any suppressed dimension shown visible-but-excluded, and the §5 guarantee in Docside\'s voice. No scores, no "accept."',
+    [['Done','prim','closeDlg()']]);
+}
+function showDlg(kind,title,body,btns,withEmail){
+  const ic = kind==='warn'
+    ? '<svg fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path d="M12 9v4M12 17h.01M10.3 3.9 1.8 18a2 2 0 001.7 3h17a2 2 0 001.7-3L14.7 3.9a2 2 0 00-3.4 0z"/></svg>'
+    : '<svg fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path d="M20 6L9 17l-5-5"/></svg>';
+  document.getElementById('dlg').className='dlg '+kind;
+  document.getElementById('dlg').innerHTML=
+    `<div class="ic">${ic}</div><h3>${title}</h3><p>${body}</p>`+
+    (withEmail?`<input type="email" placeholder="seller@example.com" aria-label="Seller email (mock — not sent)">`:'')+
+    `<div class="drow">${btns.map(b=>`<button class="btn btn-${b[1]==='prim'?'prim':'ghost'}" onclick="${b[2]}">${b[0]}</button>`).join('')}</div>`;
+  document.getElementById('dim').classList.add('on');
+}
+function closeDlg(){ document.getElementById('dim').classList.remove('on'); }
+
+/* =========================================================================
+   GRAMMAR SHEET (dev-only; never reachable in seller mode) — all SEVEN treatments
+   ========================================================================= */
+const GRAMMAR = [
+  ['Verified present', 'verified', `<span class="cv-val">21-day close</span>`, '§3B → ¶ · contract'],
+  ['Agent-corrected', 'corrected', `<span class="cv-val">$1,274,000</span> <span class="chip c-corr">corrected</span><div class="orig">corrected · original: $1,290,000</div>`, '§3A → ¶5 · contract + correction log'],
+  ['Empty-on-form', 'empty', `<span class="state-empty">Not specified on this form</span>`, '§3G(2) · contract (blank)'],
+  ['Not-captured', 'not-captured', `<span class="cv-state-notcaptured">${IC.sys}Not captured on this form</span>`, 'intake/system origin — NOT a contract citation'],
+  ['Not-applicable', 'not-applicable', `<span class="state-na">Not applicable — all-cash purchase</span>`, 'structural — why it is null'],
+  ['Unreadable', 'unreadable', `<span class="state-unread">${IC.eye}We couldn't read this field</span>`, '§3G(3) → ¶ pending re-grounding · attempted source'],
+  ['Conflicting', 'conflicting', `<span class="cv-state-conflict">${IC.conflict}Conflicting values — needs resolution</span>`, 'both traces · resolved in verify (never auto-collapsed)'],
+];
+function toggleGrammar(){
+  const g=document.getElementById('gsheet');
+  g.classList.toggle('on');
+  if(g.classList.contains('on')){
+    g.innerHTML = `<h3>State grammar — seven cell treatments</h3>
+      <div class="gnote">The six canonical field states (§1 grammar of absence) surface as seven matrix-cell treatments. No two may look alike. Empty vs. not-captured differ on <b>provenance</b> (contract blank vs. system origin); unreadable vs. conflicting are distinct edge states. Conflicting is grammar-sheet-only here — A-2/A-3 render Chen's comp as resolved-unreadable, per spec.</div>
+      <div class="gcells">${GRAMMAR.map(([k,st,v,p])=>`
+        <div class="gcell" data-state="${st}"><div class="gk">${esc(k)}</div>
+          <div class="gv">${v}</div><div class="gp">${esc(p)}</div></div>`).join('')}</div>`;
+  }
+}
+
+/* =========================================================================
+   SELF-CHECK — window.__mockupSelfCheck() (structural assertions)
+   ========================================================================= */
+window.__mockupSelfCheck = function(){
+  const checks=[];
+  const add=(name,pass,detail)=>checks.push({name,pass,detail:detail||''});
+  const body=document.getElementById('body');
+  const bodyHTML=body.innerHTML;
+  const bodyText=body.textContent;
+
+  // 1. No forbidden score artifacts
+  const forbiddenText = [/\b\d{1,3}\s*\/\s*100\b/, /\b0\.\d\d\s*(vs|to)\s*0\.\d\d/, /best offer/i, /★|⭐/, /\bscore\b/i];
+  const badText = forbiddenText.find(re=>re.test(bodyText));
+  add('no score/ratio/star/"best offer" text', !badText, badText?('matched '+badText):'');
+
+  const forbiddenSel = ['.total','.aggregate-col','.strength-bar','.heat','.score','.badge-best','.stars'];
+  const badSel = forbiddenSel.find(s=>document.querySelector('#body '+s));
+  add('no total/strength-bar/heat/score/badge nodes', !badSel, badSel||'');
+
+  // no "total" column header
+  const heads=Array.from(document.querySelectorAll('#body thead th')).map(t=>t.textContent.toLowerCase());
+  add('no total/aggregate column header', !heads.some(h=>/total|overall|aggregate|score/.test(h)), heads.join(' | '));
+
+  // "what's Chen's score?" has no numeric answer -> no per-offer numeric total exists.
+  // (net dollar values are contract-traceable displayed figures, not scores — allowed.)
+
+  // 2. Seller mode DOM absence — asserted against the LIVE surface, not a detached fragment.
+  //    (The claim is "not present in the DOM," so the test must render the real shell.)
+  const _cur=CUR, _w=Object.assign({},weights), _lo=liveOrder;
+  CUR='a6'; weights=Object.assign({},DEFAULT_WEIGHTS); liveOrder=null; render();
+  const surf=document.querySelector('.main');
+  const sBtns=Array.from(surf.querySelectorAll('button,a')).map(b=>b.textContent.trim().toLowerCase());
+  add('seller: dev harness bar removed from DOM',   !CHROME.devbar.isConnected);
+  add('seller: grammar sheet removed from DOM',     !CHROME.gsheet.isConnected && !surf.querySelector('.gsheet'));
+  add('seller: basis/Customize removed from DOM',   !CHROME.basis.isConnected && !document.getElementById('custBtn') && !surf.querySelector('#cust,.cust-btn'));
+  add('seller: no Customize control node',          !/customize/.test(surf.textContent.toLowerCase()));
+  add('seller: no expand ("why position") node',    !surf.querySelector('.expand'));
+  add('seller: no correction node',                 !surf.querySelector('.c-corr'));
+  add('seller: no "accept" action',                 !sBtns.some(t=>t==='accept'||t.startsWith('accept ')));
+  add('seller: no score/star/best-offer text',      !/\bscore\b|★|⭐|best offer/i.test(surf.textContent));
+
+  // 3. A-5 no ranking chrome — also asserted on the live surface
+  CUR='a5'; weights=Object.assign({},DEFAULT_WEIGHTS); liveOrder=null; render();
+  add('A-5: no ranked table',                       !surf.querySelector('table.cmp'));
+  add('A-5: basis/weighting header removed',        !CHROME.basis.isConnected);
+  add('A-5: no "Ranked by" in the rendered body',   document.getElementById('body').textContent.indexOf('Ranked by')===-1);
+  add('A-5: no ◆ leader marks',                     !surf.querySelector('.cv-lead'));
+  add('A-5: single-offer line present',             /Only one offer is in this comparison/.test(surf.textContent));
+  // restore the live view
+  CUR=_cur; weights=_w; liveOrder=_lo; render();
+
+  // 4. Each of the seven states emits exactly one distinct class (structural uniqueness)
+  const stateClass = {
+    'verified':'cv-val', 'corrected':'c-corr', 'empty':'state-empty',
+    'not-captured':'cv-state-notcaptured', 'not-applicable':'state-na',
+    'unreadable':'state-unread', 'conflicting':'cv-state-conflict'
+  };
+  const classes = Object.values(stateClass);
+  add('seven states -> seven distinct classes', new Set(classes).size===7, classes.join(','));
+
+  // 5. Every matrix cell carries a provenance handle (Clause-1)
+  const probeA1=probeRender('a1');
+  const cells=probeA1.querySelectorAll('table.cmp tbody td[data-dim]');
+  const missingProv=Array.from(cells).filter(td=>!td.querySelector('[data-prov]'));
+  add('every matrix cell has a provenance handle', missingProv.length===0, missingProv.length+' missing');
+
+  // 6. A-2 net suppression string; A-3 withhold bracket + Okafor below
+  const a2=probeRender('a2');
+  add('A-2: net suppression string present', /net can't be determined: buyer-broker comp unread/.test(a2.textContent));
+  add('A-2: Chen net not $0/blank', !/\$0\b/.test(a2.textContent));
+  const a3=probeRender('a3');
+  add('A-3: withhold bracket copy present', /Can't be separated on your priorities until buyer-broker comp is read for Chen/.test(a3.textContent));
+  add('A-3: Okafor below the bracket', a3.textContent.indexOf('Okafor') > a3.textContent.indexOf('Reyes'));
+
+  // 7. Pinned copy strings
+  add('context: "Comparison of 3 offers in so far"', /Comparison of 3 offers in so far/.test(document.getElementById('setMarkTxt').textContent));
+  add('basis line verbatim (DEC-8 order)',
+    orderedDims(DEFAULT_WEIGHTS).map(d=>d.label).join(' | ')==='net to seller | contingencies | financing strength | close speed');
+  add('A-4: near-tie band copy', /Reyes and Chen are very close on your priorities/.test(probeRender('a4').textContent));
+
+  const pass=checks.every(c=>c.pass);
+  console.log('%c__mockupSelfCheck: '+(pass?'PASS':'FAIL'), 'font-weight:bold;color:'+(pass?'#0E6B5A':'#A0701A'));
+  checks.forEach(c=>console.log((c.pass?'  ✓ ':'  ✗ ')+c.name+(c.detail&&!c.pass?'  ['+c.detail+']':'')));
+  return {pass, checks};
+};
+
+/* dev-harness button wrapper — runs the check and reports inline in #devMsg (console has detail) */
+function runSelfCheck(){
+  const r = window.__mockupSelfCheck();
+  const failed = r.checks.filter(c=>!c.pass);
+  const msg = document.getElementById('devMsg');
+  if(msg){
+    msg.textContent = r.pass
+      ? `✓ PASS — ${r.checks.length}/${r.checks.length} checks (see console)`
+      : `✗ FAIL — ${failed.length} of ${r.checks.length}: ${failed.map(c=>c.name).join('; ')}`;
+    msg.style.color = r.pass ? 'var(--verified)' : 'var(--attention)';
+    msg.style.fontWeight = '600';
+  }
+  return r;
+}
+window.runSelfCheck = runSelfCheck;
+
+/* render a fixture into a detached probe node without disturbing the live view */
+function probeRender(id){
+  const save=CUR, saveLive=liveOrder, saveW=Object.assign({},weights);
+  CUR=id; liveOrder=null; weights=Object.assign({},DEFAULT_WEIGHTS);
+  const f=fx();
+  const probe=document.createElement('div');
+  if(f.roleMode==='seller'){
+    const order=orderedDims(DEFAULT_WEIGHTS);
+    probe.innerHTML = buildTable(f,true)+buildOther(f,true);
+  } else if(f.single){
+    const oid=Object.keys(f.offers)[0];
+    probe.innerHTML = `<div class="single"><div class="oneline">Only one offer is in this comparison</div></div>`;
+  } else {
+    probe.innerHTML = buildTable(f,false)+buildOther(f,false);
+  }
+  CUR=save; liveOrder=saveLive; weights=saveW;
+  return probe;
+}
+function basisHas(){
+  const t=document.getElementById('basisLine').textContent;
+  return /net to seller/.test(t)&&/contingencies/.test(t)&&/financing strength/.test(t)&&/close speed/.test(t);
+}
+
+/* =========================================================================
+   BOOT + view/scenario switches
+   ========================================================================= */
+function setView(v){
+  view=v;
+  document.getElementById('app').classList.toggle('m',v==='mob');
+  document.getElementById('vDesk').classList.toggle('on',v==='desk');
+  document.getElementById('vMob').classList.toggle('on',v==='mob');
+}
+function setScn(id){
+  CUR=id; liveOrder=null; weights=Object.assign({},DEFAULT_WEIGHTS);
+  const cu=document.getElementById('cust'); if(cu) cu.classList.remove('on');
+  const gs=document.getElementById('gsheet'); if(gs) gs.classList.remove('on');
+  closeAtom(); hideDelta();
+  render();
+}
+document.addEventListener('keydown',e=>{ if(e.key==='Escape'){ closeAtom(); hideDelta(); closeDlg(); } });
+
+initChromeRefs();
+render();
+console.log('Comparison-view mockup ready. Run __mockupSelfCheck() in the console.');
+</script>
+</body>
+</html>
