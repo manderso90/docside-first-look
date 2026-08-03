@@ -25,3 +25,7 @@ test-results/
 *.log
 *.tsbuildinfo
 scratch/
+
+# Claude Code local files
+.claude/settings.local.json
+.claude/claudex/
