@@ -1,6 +1,6 @@
 # Docside First Look — Product Brief
 
-> **Version:** v1.0 · 2026-08-03
+> **Version:** v1.1 · 2026-08-03
 > **Status:** Ready for founder review. This document defines every screen, interaction, data point, feedback question, and acceptance criterion for the Docside First Look experience, plus the Phase 2 architecture decisions (§10).
 >
 > `docs/VISION.md` is the founding intent; this brief is the buildable spec. Where the two conflict, the Discrepancy Register (§11) records the ruling and why.
@@ -184,7 +184,7 @@ The video must not demonstrate clicks — otherwise we test whether they followe
 
 Button: **Open the Oakview offers**. Sub-line: "Nothing you do here will break anything, and nothing will actually be sent to anyone."
 
-**Interactions.** One action: launch. This is the redirect boundary (AD-2): the button navigates to `app.docside.ai` with the preview-session token.
+**Interactions.** One action: launch. This is the redirect boundary (AD-2): the button navigates to `app.docside.ai` carrying the preview-session token per the AD-3 handoff rules (token never in a persistent URL; scrubbed from history on arrival).
 
 **States.** Loading (token mint in flight, button shows quiet spinner); mint-failure error with retry; success = redirect.
 
@@ -192,7 +192,7 @@ Button: **Open the Oakview offers**. Sub-line: "Nothing you do here will break a
 
 **Acceptance criteria.**
 - `[Content]` GIVEN the card, THEN the early-version framing sentence appears verbatim, and the sandbox promise ("nothing will actually be sent") is present.
-- `[Telemetry]` GIVEN the redirect, THEN `workspace_launched` is written before navigation (sendBeacon), and the preview token never appears in the browser history of the shell page (POST-redirect or fragment, per AD-3).
+- `[Telemetry]` GIVEN the redirect, THEN `workspace_launched` is written before navigation (keepalive fetch per AD-4), and the preview token never persists in browser history on either origin (fragment or POST handoff + `history.replaceState` scrub on arrival, per AD-3).
 - `[UX]` GIVEN token-mint failure, THEN the participant sees a retry, not a dead end.
 
 ### 5.5 Four-mission workspace (the real app in preview mode)
@@ -275,7 +275,7 @@ Fixture values cited below are canonical per Appendix A.
 
 Okafor is chosen deliberately: all-cash and cleanly extracted — the purest first encounter with summary → extracted value → original source language, with no correction noise. It also exposes the honest absence grammar ("Not applicable — all-cash purchase") on the financing detail fields.
 
-**Success definition (observable).** All four fields viewed AND at least one `§→¶` citation clicked through to the highlighted source paragraph.
+**Success definition (observable).** All four fields viewed. **Deliberately excluded from success:** clicking a `§→¶` citation. RQ-2 asks whether agents discover provenance *naturally*; requiring the click would turn the mission into instruction-following and contaminate the signal. `source_link_opened` during Mission 1 is instead the primary RQ-2 behavioral signal (unprompted-discovery rate), and Mission 2's task copy introduces source-checking explicitly for anyone who hasn't found it — so no participant leaves the workspace without encountering the trust moment.
 
 **Micro-question (interstitial after mission).**
 > How confident are you that you could verify where Docside found this information?
@@ -295,7 +295,9 @@ Okafor is chosen deliberately: all-cash and cleanly extracted — the purest fir
 **Task statement:**
 > Review the highlighted terms on the **Reyes** offer and confirm whether Docside read them correctly.
 
-The Reyes offer ships with two planted verification moments (Appendix A): the purchase price is flagged low-confidence in "Needs your attention" — Docside's read is **$1,260,000** while the source paragraph states **$1,250,000** (the participant can catch and correct it) — and the **$5,000 seller credit** is flagged **High stakes** for confirmation. Four actions are available on any flagged field: **Confirm** · **Correct** · **Mark for further review** · **Open the source page.** The share gate is visible: sharing stays gated while high-stakes fields are unresolved.
+The Reyes offer ships with two planted verification moments (Appendix A): the purchase price is flagged low-confidence in "Needs your attention" — Docside's read is **$1,260,000** while the source paragraph states **$1,250,000** (the participant can catch and correct it) — and the **$5,000 seller credit** is flagged **High stakes** for confirmation. Four actions are available on any flagged field: **Confirm** · **Correct** · **Mark for further review** · **Open the source page.**
+
+**Resolution vocabulary (canonical).** There are three *terminal* resolution states, matching the verify-workspace mockup: `confirm` (value accepted), `corrected` (value replaced; original read travels), `unreadable` (marked as unreadable; renders the absence string). **Mark for further review is not a fourth terminal state** — it is a non-terminal flag (`review`) that keeps the field open: the attention card stays in the queue, and a high-stakes field marked for review keeps the share gate engaged. The share gate releases only when every high-stakes field reaches a terminal state.
 
 **Success definition.** At least one flagged field resolved via any mode (confirm, correct, or mark-for-review).
 
@@ -307,7 +309,8 @@ The Reyes offer ships with two planted verification moments (Appendix A): the pu
 **Acceptance criteria.**
 - `[UX]` GIVEN the Reyes price card in "Needs your attention", WHEN the participant corrects $1,260,000 → $1,250,000, THEN the reading updates, the row shows the corrected chip with "original read: $1,260,000", and every downstream figure derived from price (net) recomputes.
 - `[Guardrail]` GIVEN unresolved high-stakes fields, THEN the share affordance is visibly gated with the count ("1 high-stakes field still needs you"); GIVEN all resolved, THEN it reads ready-to-share — but sharing remains stubbed (Mission 4 promise).
-- `[Telemetry]` GIVEN each resolve action, THEN one `correction_attempted` event with the field and mode actually used.
+- `[Telemetry]` GIVEN each resolve action, THEN one `correction_attempted` event with the field and mode actually used (`confirm | corrected | unreadable | review`).
+- `[Guardrail]` GIVEN a high-stakes field marked for review (`review`), THEN it remains in "Needs your attention" and the share gate remains engaged — review never releases the gate.
 - `[Content]` GIVEN a corrected field that later appears anywhere (comparison, seller view), THEN the original read travels with it — corrections are never silent.
 
 ### Mission 3 — Compare the offers
@@ -315,7 +318,7 @@ The Reyes offer ships with two planted verification moments (Appendix A): the pu
 **Task statement:**
 > Your seller cares most about **net proceeds, certainty, and closing within 30 days**. Which offer would you discuss first?
 
-The comparison opens with the ranking-basis line always visible: "Ranked by: net to seller ▸ contingencies ▸ financing strength ▸ close speed" (Customize can reorder priorities — reorder only, no sliders or weights; the ranker is lexicographic). **Chen's net is suppressed**: its buyer-broker compensation field is unreadable, so Chen's net renders "We couldn't read this field" and Chen participates in the order under the suppressed-dimension rules — participants see honest refusal, not just clean success. This is the shipped scenario, deliberately (Appendix A; §11.6). Docside never names a "best" offer; it shows how the offers differ, the seller's stated priorities, and the information behind the presentation — every cell carries a provenance handle (`§→¶` citation or the dashed system formula, e.g. `net = §3A price − §3G(1) credit − §3G(3) comp`).
+The comparison opens with the ranking-basis line always visible: "Ranked by: net to seller ▸ contingencies ▸ financing strength ▸ close speed" (Customize can reorder priorities — reorder only, no sliders or weights; the ranker is lexicographic). **Chen's net is suppressed**, and the expected state is exact so implementation and research interpretation cannot drift: Chen's net cell renders "We couldn't read this field" (dashed treatment); because the first-priority dimension is unreadable for Chen, **Chen is held out of the ranked order** — rendered in the withheld position (`—` instead of a rank number) with the reason "Net to seller couldn't be read — resolve it to place this offer" and a link into the verify workspace — while **Reyes and Okafor rank normally** on the full priority list. The overall ranking is neither withheld entirely nor guessed: Docside ranks what it can trace and refuses only what it can't. Resolving Chen's comp field (in verify) places Chen in the order — at 2.5%, first. Participants see honest refusal with a payoff, not just clean success. This is the shipped scenario, deliberately (Appendix A; §11.6). Docside never names a "best" offer; it shows how the offers differ, the seller's stated priorities, and the information behind the presentation — every cell carries a provenance handle (`§→¶` citation or the dashed system formula, e.g. `net = §3A price − §3G(1) credit − §3G(3) comp`).
 
 **Success definition.** An offer selected in the interstitial AND at least one provenance handle or "Why this position" opened during the mission.
 
@@ -326,7 +329,8 @@ The comparison opens with the ranking-basis line always visible: "Ranked by: net
 
 **Acceptance criteria.**
 - `[Guardrail]` GIVEN the comparison view in any state, THEN no score, star, total, percentage-match, or "best offer" language renders anywhere (the mockup self-check list is the audit).
-- `[UX]` GIVEN Chen's suppressed net, THEN the cell renders "We couldn't read this field" with a dashed treatment and a path to resolve (link into verify), and the ranking-basis line remains visible.
+- `[UX]` GIVEN Chen's suppressed net, THEN the cell renders "We couldn't read this field" with a dashed treatment, Chen shows `—` in place of a rank with the resolve reason and a link into verify, Reyes and Okafor carry rank numbers, and the ranking-basis line remains visible.
+- `[UX]` GIVEN Chen's comp field resolved in verify, WHEN the participant returns to the comparison, THEN Chen enters the ranked order and the change is announced via the `aria-live` region.
 - `[UX]` GIVEN a click on any cell's provenance handle, THEN the per-offer detail opens showing value + `§→¶` reference (or system formula), with a working "Open in the verify workspace" link.
 - `[Content]` GIVEN the unranked extras ("Other terms — not ranked"), THEN Chen's rent-back request and Reyes's personal-property inclusion appear as verbatim contract quotes, never scored into the order.
 - `[UX]` GIVEN a priority reorder via Customize, THEN the order updates with the FLIP animation (instant under `prefers-reduced-motion`) and an `aria-live` announcement of the new order.
@@ -373,7 +377,9 @@ Editing rule: any future wording change must cite the no-leading-questions rule 
 
 ## §8 — Telemetry event schema
 
-**Common envelope on every event:** `event_id` (uuid), `participant_id`, `session_id`, `stage` (§4 enum), `ts_client`, `ts_server` (stamped at the ingestion route), `device` (`desktop | mobile | tablet`, from viewport + UA). Events are **append-only**: the `events` table grants insert only — no update or delete (AD-4).
+**Common envelope on every event:** `event_id` (uuid), `participant_id`, `session_id`, `stage` (§4 enum), `ts_client`, `ts_server` (stamped at the ingestion route), `device` (`desktop | mobile | tablet`, from viewport + UA), plus **version fields**: `brief_version` (this document's version), `fixture_version` (Appendix A dataset version), `shell_commit_sha`, `app_commit_sha` (for app-originated events), and `pipeline_version` (nullable; the extraction-pipeline version that produced the golden seed). Version fields are stamped server-side at ingestion from deploy metadata — clients never self-report them. They exist so Cohort 1 data remains interpretable after the fix pass: any change between cohorts (copy, fixtures, app build) is visible in the data, and cross-cohort comparisons filter on them. Events are **append-only**: the `events` table grants insert only — no update or delete (AD-4).
+
+**Payload hygiene (hard rule):** event `properties` must never contain invite codes, session tokens, email addresses, or raw request headers. Free-text answer content appears only in the events designed to carry it (`first_impression_submitted`, `micro_question_answered`, `debrief_part_submitted`); every other event's properties are enum/id/numeric only. The ingestion route enforces this with a per-event property allowlist — unknown properties are dropped and the drop is logged.
 
 | Event | Properties | Fired when | From |
 |---|---|---|---|
@@ -387,7 +393,7 @@ Editing rule: any future wording change must cite the no-leading-questions rule 
 | `video_completed` | — | ≥90% reached (the "watched" definition) | shell |
 | `video_skipped` | `at_pct` | Continue before 25% played | shell |
 | `scenario_viewed` | — | Screen 4 load | shell |
-| `workspace_launched` | — | Redirect to app (sendBeacon pre-navigation) | shell |
+| `workspace_launched` | — | Redirect to app (keepalive fetch pre-navigation, AD-4) | shell |
 | `mission_started` | `mission` | Mission bar advances to N | app |
 | `mission_completed` | `mission`, `duration_ms` | Success definition met or skip past | app |
 | `first_click` | `element_id`, `region` | First interactive click after workspace load | app |
@@ -412,27 +418,40 @@ Editing rule: any future wording change must cite the no-leading-questions rule 
 
 All tables live in the `first_look` schema (AD-4). Column sketches — final DDL at build time:
 
-- **`participants`** — `id`, `first_name`, `email`, `participant_number` (the "No. 007"), `cohort` (1 = moderated, 2+ = self-guided), `created_at`.
+- **`participants`** — `id`, `first_name`, `email`, `participant_number` (the "No. 007"), `participant_ref` (a random, non-secret public reference used wherever a participant must be identified outside our systems — e.g. the scheduling link; it grants no access and is distinct from any invite code), `cohort` (1 = moderated, 2+ = self-guided), `created_at`.
 - **`invites`** — `id`, `code` (~20-char high-entropy slug, unique), `participant_id`, `personal_note` (Morris's why-you line), `revoked_at`, `expires_at`, `created_at`. One active invite per participant.
 - **`sessions`** — `id`, `participant_id`, `invite_id`, `started_at`, `device`, `last_stage`. One row per entry (returns = multiple rows).
 - **`events`** — envelope columns + `event`, `properties` (jsonb). Insert-only.
 - **`survey_responses`** — `id`, `participant_id`, `part` (1–8 + micro-question keys `m1`–`m4` + `first_impression`), `answer` (jsonb), `audio_path` (nullable, → `first-look-audio` bucket), `updated_at`. Upsert per (participant, part) — latest wins.
 
-**Token flow (AD-3 narrative):** participant opens `preview.docside.ai/<code>` → shell server validates the code against `invites` (not revoked, not expired) → creates a `sessions` row → screens 1–4 run in the shell keyed by an httpOnly session cookie → at screen 4's launch, the shell server mints a short-lived (~2h) Supabase-compatible preview JWT (claims: `participant_id`, `workspace_id`, `invite_id`, `session_id`, `role: 'preview'`, `exp`) and hands off to `app.docside.ai` → the app's RLS reads the claims directly → after Mission 4 the app redirects back to `/​<code>/debrief`. Re-entry repeats the flow, resuming at `last_stage`.
+**Token flow (AD-3 narrative):** participant opens `preview.docside.ai/<code>` → shell server validates the code against `invites` (not revoked, not expired) → creates a `sessions` row → screens 1–4 run in the shell keyed by an httpOnly session cookie (the code itself is immediately scrubbed from the address bar via `history.replaceState`) → at screen 4's launch, the shell server mints a short-lived (~2h) Supabase-compatible preview JWT — the standard Supabase role plus **custom claims** `first_look: true`, `participant_id`, `workspace_id`, `invite_id`, `session_id` (never a custom Postgres `role` value: overriding `role` would require deliberately creating and granting a DB role, and a typo there fails open in confusing ways — RLS policies key on the `first_look` claim instead) → hands off to `app.docside.ai` → the app's RLS reads the claims directly → after Mission 4 the app redirects back to `/​<code>/debrief`. Re-entry repeats the flow: the invite code always resolves to the same participant and the **same preview workspace** (see AD-1 idempotent provisioning), resuming at `last_stage`.
+
+### §9.1 — Privacy & retention
+
+First Look holds real personal data about real agents alongside their candid criticism; treat both carefully.
+
+- **What is personal data here:** `first_name`, `email`, Morris's `personal_note`, audio recordings, and any free-text answer (participants may name themselves, clients, or properties). Everything else is behavioral telemetry keyed to `participant_id`.
+- **Access:** feedback and audio are for Morris's review; no third-party analytics or data processors beyond Supabase/Vercel (already in the stack) and the scheduling provider (which receives only `participant_ref`, never name/email/code — the participant enters their own details there).
+- **Retention:** preview workspaces TTL ~30 days after completion (AD-1). Survey responses, audio, and telemetry are retained for the research program; when the First Look program ends, audio is deleted and `participants.email` is dropped or the table is archived offline. Raw server logs containing invite-code exchanges rotate on the platform default (≤30 days).
+- **Deletion on request:** a participant's request deletes their `participants` row and cascades: invites, sessions, events, survey responses, audio object, preview workspace. `participant_number` is never reissued.
+- **What payloads must never contain:** see §8 payload hygiene — codes, tokens, emails, headers never enter `events.properties`.
+- **Recording:** no audio or screen capture ever starts without an explicit participant action (Part 8's record button; §13.6 for any future session recording).
 
 ---
 
 ## §10 — Architecture decisions
 
-Each decision: what we're doing, why, what was rejected. AD-1 and AD-2 touch the `docside` repo and carry their §17 one-sentence statements; their schema-level details are decisions-with-a-verification-step to confirm against the sibling repo (§13.4) — nothing here invents docside internals.
+Each decision: what we're doing, why, what was rejected. AD-1 and AD-2 touch the `docside` repo, whose CLAUDE.md requires any cross-repo change to pass its **§17 one-sentence test** (a section of `docside/CLAUDE.md`, not of this brief) — each carries that sentence as an implementation note. Their schema-level details are decisions-with-a-verification-step to confirm against the sibling repo (§13.4) — nothing here invents docside internals.
 
 ### AD-1 — Preview tenancy: flagged rows in the existing Supabase project
 
-**Decision.** Preview workspaces live in the main docside Supabase project as flagged rows (`is_preview = true`), cloned per participant from one **golden seed workspace**, RLS-isolated via the preview JWT, TTL-cleaned ~30 days after completion.
+**Decision.** Preview workspaces live in the main docside Supabase project as flagged rows (`is_preview = true`), cloned per participant from one **golden seed workspace**, RLS-isolated via the preview JWT's `first_look` claim, TTL-cleaned ~30 days after completion.
+
+**Provisioning is idempotent.** The **first** redemption of an invite creates the participant's clone and stores its `workspace_id` on the invite; **every later** redemption (return visits, expired-token re-entry, accidental double-click) reuses that same workspace — never a second clone. One participant, one preview workspace, for the life of the invite.
 
 **Rationale.** (1) The seed must run through the *real* extraction pipeline, which lives in that project — a second project means deploying and version-syncing the pipeline, migrations, and storage twice, forever. (2) Extraction runs **once**, at golden-seed creation; per-participant provisioning is a row/artifact copy — fast, deterministic, and identical for every participant, which the comparability rule requires. (3) Mission 2 mutations land only in the participant's clone. (4) "Nothing an agent does touches real data" is enforced at the RLS layer: the preview JWT carries only its own `workspace_id`, preview policies deny everything else, and real-user policies exclude `is_preview` rows. (5) All outbound actions (share, email, SMS) are hard-stubbed server-side whenever `is_preview`.
 
-**§17 sentence for the docside repo:** *Docside gains a preview mode: a flagged, RLS-isolated, per-participant clone of one seeded workspace, entered by signed token, with outbound actions stubbed.*
+**Implementation note — the `docside` repo's §17 one-sentence test:** *Docside gains a preview mode: a flagged, RLS-isolated, per-participant clone of one seeded workspace, entered by signed token, with outbound actions stubbed.*
 
 **Rejected.** A dedicated preview Supabase project — cleaner blast radius on paper, but permanently doubles infra, migration, and secret surface for a research tool serving a dozen participants, and still requires the pipeline deployed there. The isolation it buys is achievable with one flag plus RLS.
 
@@ -442,19 +461,29 @@ Each decision: what we're doing, why, what was rejected. AD-1 and AD-2 touch the
 
 **Rationale.** (1) Mobile: iOS Safari's third-party storage partitioning breaks cross-origin iframe sessions, and iframe viewport handling would wreck the 40/60 split and the bottom-sheet pattern — the trust moment cannot be risked on iframe scrolling. (2) Telemetry origination: source-link opens and corrections happen inside the app regardless of composition, so the app must be preview-aware anyway; an iframe adds a postMessage relay without removing that need. (3) The moment to protect deserves the full viewport. The cross-repo surface stays one module: token validation, mission chrome, telemetry beacon, share stub.
 
-**§17 sentence:** covered by AD-1's sentence — the mission chrome and beacon are parts of the same preview mode.
+**Implementation note (docside §17):** covered by AD-1's sentence — the mission chrome and beacon are parts of the same preview mode.
 
 **Rejected.** Iframe + postMessage — keeps the shell visually in control but is strictly worse on mobile storage, viewport, and telemetry plumbing.
 
 ### AD-3 — Invite tokens: capability URL → short-lived signed session token, re-entrant
 
-**Decision.** The invite code is the capability: a ~20-char unguessable slug in the URL. The shell exchanges it **server-side** for a short-lived (~2h) Supabase-compatible JWT whose claims drive app RLS (§9 flow). Links are **re-entrant** — each entry mints a fresh token and a new session row, so return-visit tracking falls out for free. Revocation: `invites.revoked_at` checked at every exchange; the short expiry bounds the post-revocation window to ≤2h. Codes appear in logs only at the exchange route.
+**Decision.** The invite code is the capability: a ~20-char unguessable slug in the URL. The shell exchanges it **server-side** for a short-lived (~2h) Supabase-compatible JWT — the standard Supabase role plus custom claims `first_look: true`, `participant_id`, `workspace_id`, `invite_id`, `session_id` (§9 flow explains why the Postgres `role` claim is left alone). Links are **re-entrant** — each entry mints a fresh token and a new session row (reusing the same preview workspace per AD-1), so return-visit tracking falls out for free. Revocation: `invites.revoked_at` checked at every exchange; the short expiry bounds the post-revocation window to ≤2h.
+
+**Leak-prevention requirements (the code is the only secret the participant holds; it must not escape):**
+- On invite-page load, the code is scrubbed from the address bar via `history.replaceState` once the httpOnly session cookie is set; subsequent shell navigation is code-free (`/debrief` routes resolve via the cookie, with the code path kept only as a re-entry alias).
+- All shell and preview-mode app pages set `Referrer-Policy: no-referrer` — no outbound request may carry a code- or token-bearing URL in a referrer.
+- No third-party scripts on any shell page (nothing to exfiltrate to).
+- The shell→app handoff carries the session JWT via POST body or URL fragment — never a persistent query string — and the app scrubs it from history on arrival.
+- Third parties never see the code or token: the scheduling link carries only the non-secret `participant_ref` (AD-5, §9).
+- Codes appear in server logs only at the exchange route; tokens are never logged.
 
 **Rejected.** Single-use tokens (break the vision's return-visit tracking and punish an accidental tab close) and long-lived tokens carried in URLs (unbounded revocation window; leak via history, referrer, and screenshots).
 
 ### AD-4 — Telemetry & survey storage: `first_look` schema, single server write path
 
-**Decision.** The §9 tables live in a dedicated `first_look` schema of the main Supabase project. **Every** event and survey answer POSTs to the shell's `/api/events` (and `/api/responses`) route: the server validates the bearer session token, stamps `ts_server` and `session_id`, and inserts with the service role. Main-app preview events use the same route via `fetch`/`sendBeacon` to `preview.docside.ai` (CORS-allowlisted for `app.docside.ai`) — the docside-side change is one small beacon helper. `events` is insert-only at the grant level.
+**Decision.** The §9 tables live in a dedicated `first_look` schema of the main Supabase project. **Every** event and survey answer POSTs to the shell's `/api/events` (and `/api/responses`) route: the server authenticates the caller, validates the event against the per-event property allowlist (§8), stamps `ts_server`, `session_id`, and the version fields, and inserts with the service role. Main-app preview events use the same route (CORS-allowlisted for `app.docside.ai`) — the docside-side change is one small beacon helper. `events` is insert-only at the grant level.
+
+**Transport & auth detail:** the primary transport is `fetch(..., { keepalive: true })` with an `Authorization: Bearer <session JWT>` header — chosen over `navigator.sendBeacon` because sendBeacon cannot set an Authorization header. Shell-originated events may instead authenticate via the httpOnly session cookie (same-origin). For the two genuinely unload-critical events (`workspace_launched`, drop-off flushes), if keepalive fetch proves unreliable the fallback is sendBeacon with a short-lived signed event token *inside the JSON body* — never an unauthenticated beacon endpoint.
 
 **Rationale.** One validation point, one schema owner, one place to rate-limit; co-located with the preview workspaces so there is exactly one project to reason about.
 
@@ -466,7 +495,18 @@ Each decision: what we're doing, why, what was rejected. AD-1 and AD-2 touch the
 
 **Audio response (debrief Part 8).** Browser MediaRecorder → webm/opus, ≤3 min cap → POST to a shell server route → private `first-look-audio` Storage bucket; `survey_responses.audio_path` links it. Consent copy precedes the permission request; denial falls back to text. *Rejected:* third-party voice-survey SaaS — another data processor for candid participant audio, against the trust posture.
 
-**Scheduling.** Plain outbound Calendly/Cal.com link (URL from env) carrying the participant code as a query param so bookings reconcile to participants; `schedule_clicked` on click. *Rejected:* embedded scheduling widget — third-party script weight on the thank-you page for no research gain.
+**Scheduling.** Plain outbound Calendly/Cal.com link (URL from env) carrying the non-secret `participant_ref` (§9) as a query param so bookings reconcile to participants — **never the invite code or any token**, which must not reach a third party; `schedule_clicked` on click. *Rejected:* embedded scheduling widget — third-party script weight on the thank-you page for no research gain.
+
+### Security acceptance tests (release gate for Phases 4–5)
+
+The isolation claims above are proven, not assumed. These tests run before any external participant receives a link, and again before each cohort:
+
+- `[Security]` GIVEN a valid preview JWT, WHEN it queries any real (non-preview) workspace, any other participant's preview workspace, or any table outside its RLS grant, THEN every query returns zero rows or a permission error — verified per table, not just per happy path.
+- `[Security]` GIVEN a real authenticated docside user, WHEN they query workspaces, THEN no `is_preview` row is ever returned, and preview rows are absent from product metrics/aggregates.
+- `[Security]` GIVEN a preview workspace, WHEN each outbound action (share, email, SMS — every send path enumerated) is invoked, THEN the server returns the stub response and no external delivery occurs — verified at the provider/adapter layer, not by watching the UI.
+- `[Security]` GIVEN the ingestion route, WHEN called with no auth, an expired JWT, a token for a different session, an unknown event name, or off-allowlist properties, THEN the write is rejected (or the properties dropped and logged) — no unauthenticated or unvalidated row ever lands in `events`.
+- `[Security]` GIVEN an expired or revoked invite, WHEN its code is exchanged, THEN no session or token is issued; GIVEN a revoked invite with a still-live JWT, THEN the JWT expires within its ≤2h window and no new token can be minted.
+- `[Security]` GIVEN any shell or preview-mode page, THEN response headers include `Referrer-Policy: no-referrer`, no third-party script loads on shell pages, and no invite code or token appears in the address bar after load (AD-3 scrubbing verified in-browser).
 
 ---
 
