@@ -41,11 +41,15 @@ Shipped in-repo: Next 15 App Router shell on the v3 mockup tokens + IBM Plex, in
 
 Remaining before Cohort 1: the Docside intro capture asset (screen 2); founder video MP4 + captions (env `FOUNDER_VIDEO_URL`); Playwright e2e per docside's pre-deploy checklist; visual pass at 375px; Phase 5 env wiring (`SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY`, `SCHEDULE_URL`).
 
-## Phase 4 — Seed data + preview mode in the main app
+## Phase 4 — Seed data + preview mode in the main app ◔ (in progress 2026-08-03)
 
 Synthetic Oakview Drive dataset run through the real extraction pipeline; preview agents + `generateLink` session handoff per `docs/ARCHITECTURE-VERIFICATION.md`; sandbox guarantees (nothing an agent does touches real data; "nothing will actually be sent" on Mission 4).
 
-**Prerequisite (founder decision 2026-08-03, BRIEF §13 Q8):** `offer_summaries` generation + seller-view narrative rendering implemented in `docside` before Cohort 1.
+**Docside-side PRs open (2026-08-03, awaiting founder review):**
+- [docside#57](https://github.com/manderso90/docside/pull/57) — **the Q8 prerequisite**: M4 `render-summary` (summary pipeline + fail-closed language filter + seller-view narrative sections). Includes a flagged CLAUDE.md-vs-PLAN doc conflict resolved as framing-hardcoded/body-generated — confirm in review.
+- [docside#58](https://github.com/manderso90/docside/pull/58) — preview foundation: migration 0014 (`agents.is_preview` + `share_outbox` suppression trigger), integration-tested (preview share created with zero outbox rows; control agent unaffected).
+
+**Still to build (change-list items 3–6):** synthetic Oakview PDFs + golden-seed script (direct-invoke pipeline), per-participant clone routine, `generateLink` handoff + mission chrome + telemetry beacon, TTL reaper. The three synthetic purchase-agreement PDFs (Appendix A spec: paragraph-numbered synthetic form family, Chen's handwritten-ambiguous §3G(3), Reyes's stageable §3A misread) are the next authoring task — fixture content, not just code.
 
 ## Phase 5 — Telemetry + feedback capture
 
