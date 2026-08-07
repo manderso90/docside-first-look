@@ -11,6 +11,7 @@
 // re-reports the existing revocation and re-applies the ban.
 
 import { createClient } from "@supabase/supabase-js";
+import WebSocket from "ws";
 
 const [code] = process.argv.slice(2);
 if (!code) {
@@ -27,11 +28,17 @@ if (!url || !key) {
   process.exit(1);
 }
 
+// ws transport: see create-invite.mjs — local Node 20 lacks a global
+// WebSocket and supabase-js throws at construction without one.
 const db = createClient(url, key, {
   auth: { persistSession: false },
   db: { schema: "first_look" },
+  realtime: { transport: WebSocket },
 });
-const auth = createClient(url, key, { auth: { persistSession: false } });
+const auth = createClient(url, key, {
+  auth: { persistSession: false },
+  realtime: { transport: WebSocket },
+});
 
 const { data: invite, error: inviteError } = await db
   .from("invites")

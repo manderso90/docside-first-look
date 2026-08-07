@@ -15,6 +15,7 @@
 
 import { randomBytes } from "node:crypto";
 import { createClient } from "@supabase/supabase-js";
+import WebSocket from "ws";
 
 const [firstName, email, personalNote, cohortArg] = process.argv.slice(2);
 if (!firstName || !email || !personalNote) {
@@ -38,9 +39,13 @@ if (!url || !key) {
   process.exit(1);
 }
 
+// ws transport: local founder machines may run Node 20 (no global
+// WebSocket) — supabase-js constructs a RealtimeClient at init and throws
+// without one. The deployed shell runs a newer runtime and doesn't need it.
 const db = createClient(url, key, {
   auth: { persistSession: false },
   db: { schema: "first_look" },
+  realtime: { transport: WebSocket },
 });
 
 // 15 random bytes → 20 base64url chars, the BRIEF's ~20-char high-entropy slug.
