@@ -426,6 +426,8 @@ All tables live in the `first_look` schema (AD-4). Column sketches — final DDL
 - **`events`** — envelope columns + `event`, `properties` (jsonb). Insert-only.
 - **`survey_responses`** — `id`, `participant_id`, `part` (1–8 + micro-question keys `m1`–`m4` + `first_impression`), `answer` (jsonb), `audio_path` (nullable, → `first-look-audio` bucket), `updated_at`. Upsert per (participant, part) — latest wins.
 
+> **Superseded (2026-08-03, §13 Q4):** the hand-minted "Supabase-compatible preview JWT with custom claims" mechanism below was replaced by a real GoTrue session — shell calls `admin.auth.admin.generateLink({ type: 'magiclink' })` (no email sent) and hands `token_hash` to the app's `/auth/confirm` verifyOtp route; RLS keys on `auth.uid()` as for any agent. `docs/ARCHITECTURE-VERIFICATION.md` §3 is authoritative. The flow shape (code exchange, cookie, scrub, re-entrancy, ~2h bound) is unchanged.
+
 **Token flow (AD-3 narrative):** participant opens `preview.docside.ai/<code>` → shell server validates the code against `invites` (not revoked, not expired) → creates a `sessions` row → screens 1–4 run in the shell keyed by an httpOnly session cookie (the code itself is immediately scrubbed from the address bar via `history.replaceState`) → at screen 4's launch, the shell server mints a short-lived (~2h) Supabase-compatible preview JWT — the standard Supabase role plus **custom claims** `first_look: true`, `participant_id`, `workspace_id`, `invite_id`, `session_id` (never a custom Postgres `role` value: overriding `role` would require deliberately creating and granting a DB role, and a typo there fails open in confusing ways — RLS policies key on the `first_look` claim instead) → hands off to `app.docside.ai` → the app's RLS reads the claims directly → after Mission 4 the app redirects back to `/​<code>/debrief`. Re-entry repeats the flow: the invite code always resolves to the same participant and the **same preview workspace** (see AD-1 idempotent provisioning), resuming at `last_stage`.
 
 ### §9.1 — Privacy & retention
@@ -468,6 +470,8 @@ Each decision: what we're doing, why, what was rejected. AD-1 and AD-2 touch the
 **Rejected.** Iframe + postMessage — keeps the shell visually in control but is strictly worse on mobile storage, viewport, and telemetry plumbing.
 
 ### AD-3 — Invite tokens: capability URL → short-lived signed session token, re-entrant
+
+> **Superseded in mechanism (2026-08-03, §13 Q4):** the custom-claims JWT described here was replaced by a real GoTrue session via `admin.auth.admin.generateLink` → `/auth/confirm` — see `docs/ARCHITECTURE-VERIFICATION.md` §3. The decision's intent (server-side exchange, short-lived, re-entrant, revocable) stands; the leak-prevention requirements below remain binding.
 
 **Decision.** The invite code is the capability: a ~20-char unguessable slug in the URL. The shell exchanges it **server-side** for a short-lived (~2h) Supabase-compatible JWT — the standard Supabase role plus custom claims `first_look: true`, `participant_id`, `workspace_id`, `invite_id`, `session_id` (§9 flow explains why the Postgres `role` claim is left alone). Links are **re-entrant** — each entry mints a fresh token and a new session row (reusing the same preview workspace per AD-1), so return-visit tracking falls out for free. Revocation: `invites.revoked_at` checked at every exchange; the short expiry bounds the post-revocation window to ≤2h.
 
