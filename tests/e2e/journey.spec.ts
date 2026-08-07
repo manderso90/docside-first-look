@@ -101,7 +101,11 @@ test("full participant journey: invite → seven screens → thank-you", async (
     page.getByRole("heading", { name: "The missions run inside Docside itself." }),
   ).toBeVisible();
   await checkpoint(page, testInfo, "14-workspace");
-  await page.getByRole("button", { name: "Continue to the debrief (dev only)" }).click();
+  // The real AD-2 return leg: the app's preview-banner link lands on
+  // /missions-complete, which advances past the mission stages. Driving it
+  // here (instead of the dev-only button) keeps the production return path
+  // under test even though the app itself isn't in this suite.
+  await page.goto("/missions-complete");
 
   // ── Screen 6: the eight-part debrief (§7 wording is FINAL) ──
   await expect(page).toHaveURL(/\/debrief$/);
