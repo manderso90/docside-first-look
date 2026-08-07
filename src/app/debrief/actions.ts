@@ -15,6 +15,9 @@ import type { ResponsePart } from "@/lib/store/types";
 export interface DebriefSaveState {
   error: string | null;
   savedPart: number | null;
+  /** Echo of what was saved, so the stepper can show it again on Back
+   * (priorAnswers is a page-load snapshot and goes stale mid-debrief). */
+  savedAnswer: Record<string, unknown> | null;
 }
 
 export async function saveDebriefPart(
@@ -24,14 +27,14 @@ export async function saveDebriefPart(
   const ctx = await requireStage("debrief");
   const partNum = Number(formData.get("part"));
   const spec = DEBRIEF_PARTS.find((p) => p.part === partNum);
-  if (!spec) return { error: "Unknown step.", savedPart: null };
+  if (!spec) return { error: "Unknown step.", savedPart: null, savedAnswer: null };
   const part = spec.part as DebriefPartId;
 
   let answer: Record<string, unknown>;
   if (spec.kind === "single_choice") {
     const choice = String(formData.get("choice") ?? "");
     if (!spec.options.includes(choice)) {
-      return { error: "Pick one to continue.", savedPart: null };
+      return { error: "Pick one to continue.", savedPart: null, savedAnswer: null };
     }
     answer = { choice };
   } else if (spec.kind === "open_text") {
@@ -62,6 +65,7 @@ export async function saveDebriefPart(
     return {
       error: "That didn't save. Your answer is still here — try again.",
       savedPart: null,
+      savedAnswer: null,
     };
   }
 
@@ -77,7 +81,7 @@ export async function saveDebriefPart(
     await store.advanceStage(ctx.session.id, "thank_you");
     redirect(stagePath("thank_you"));
   }
-  return { error: null, savedPart: part };
+  return { error: null, savedPart: part, savedAnswer: answer };
 }
 
 export async function recordScheduleClick(): Promise<void> {

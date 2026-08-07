@@ -3,6 +3,7 @@ node_modules/
 
 # Next.js
 .next/
+.next-e2e-*/
 out/
 next-env.d.ts
 
@@ -22,6 +23,10 @@ test-results/
 
 # Dev audio fallback (never committed)
 var/
+
+# Local media staging — founder video lives in Supabase Storage, not git
+media/
+*.mov
 
 # Misc
 .DS_Store

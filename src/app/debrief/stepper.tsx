@@ -12,7 +12,11 @@ import { SubmitButton } from "@/components/submit-button";
 import { beacon } from "@/lib/beacon";
 import { saveDebriefPart, type DebriefSaveState } from "./actions";
 
-const initialState: DebriefSaveState = { error: null, savedPart: null };
+const initialState: DebriefSaveState = {
+  error: null,
+  savedPart: null,
+  savedAnswer: null,
+};
 
 export function DebriefStepper({
   startAt,
@@ -25,19 +29,25 @@ export function DebriefStepper({
 }) {
   const [current, setCurrent] = useState(Math.min(Math.max(startAt, 1), 8));
   const [state, formAction] = useActionState(saveDebriefPart, initialState);
-  const advancedFor = useRef<number | null>(null);
+  // priorAnswers is a page-load snapshot; saves made during this visit land
+  // here so Back shows what was actually saved instead of a stale blank
+  // (which Continue would then dutifully save over the real answer).
+  const [answers, setAnswers] =
+    useState<Record<number, Record<string, unknown>>>(priorAnswers);
 
-  // Advance exactly once per successful save (part 8 redirects server-side).
+  // Advance once per successful save (part 8 redirects server-side).
+  // Keyed on the state OBJECT, not savedPart: re-saving the same part after
+  // Back yields an identical savedPart number, and a number-keyed effect
+  // would skip the advance and strand the participant on the saved part.
   useEffect(() => {
-    if (
-      state.savedPart !== null &&
-      state.savedPart < 8 &&
-      advancedFor.current !== state.savedPart
-    ) {
-      advancedFor.current = state.savedPart;
-      setCurrent(state.savedPart + 1);
+    if (state.savedPart !== null) {
+      const part = state.savedPart;
+      if (state.savedAnswer) {
+        setAnswers((prev) => ({ ...prev, [part]: state.savedAnswer! }));
+      }
+      if (part < 8) setCurrent(part + 1);
     }
-  }, [state.savedPart]);
+  }, [state]);
 
   const spec = DEBRIEF_PARTS.find((p) => p.part === current)!;
 
@@ -56,7 +66,7 @@ export function DebriefStepper({
         <input type="hidden" name="part" value={spec.part} />
         <PartBody
           spec={spec}
-          prior={priorAnswers[spec.part]}
+          prior={answers[spec.part]}
           scheduleUrl={scheduleUrl}
         />
         {state.error ? <ErrorNote>{state.error}</ErrorNote> : null}

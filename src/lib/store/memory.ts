@@ -46,9 +46,30 @@ const revokedInvite: Invite = {
   expiresAt: null,
 };
 
-const sessions = new Map<string, Session>();
-const events: EventRecord[] = [];
-const responses = new Map<string, SurveyResponse>();
+/**
+ * Dev state lives on globalThis: `next dev` compiles routes into separate
+ * server bundles and hot-reloads reset module scope, so plain module-level
+ * Maps silently drop sessions between screens (seen as a mid-flow bounce to
+ * /link-inactive). globalThis survives both. Dev-only store, so no prod risk.
+ */
+interface MemoryState {
+  sessions: Map<string, Session>;
+  events: EventRecord[];
+  responses: Map<string, SurveyResponse>;
+}
+
+const globalState = globalThis as typeof globalThis & {
+  __firstLookMemoryState?: MemoryState;
+};
+if (!globalState.__firstLookMemoryState) {
+  const fresh: MemoryState = {
+    sessions: new Map(),
+    events: [],
+    responses: new Map(),
+  };
+  globalState.__firstLookMemoryState = fresh;
+}
+const { sessions, events, responses } = globalState.__firstLookMemoryState;
 
 export class MemoryStore implements FirstLookStore {
   async lookupInvite(code: string): Promise<InviteLookup> {
