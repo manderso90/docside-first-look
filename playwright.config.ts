@@ -64,6 +64,9 @@ export default defineConfig({
         FOUNDER_VIDEO_URL: "",
         FOUNDER_VIDEO_CAPTIONS_URL: "",
         SCHEDULE_URL: "https://schedule.example.invalid/morris",
+        // events-api.spec.ts exercises the Phase 4 CORS contract against
+        // this server; the value is the prod app origin's stand-in.
+        ALLOWED_EVENT_ORIGIN: "https://app.docside.ai",
       },
     },
     {

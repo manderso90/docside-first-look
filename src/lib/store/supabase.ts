@@ -51,6 +51,7 @@ type ParticipantRow = {
   participant_number: number;
   participant_ref: string;
   cohort: number;
+  preview_agent_id: string | null;
 };
 
 type SessionRow = {
@@ -81,6 +82,7 @@ function toParticipant(row: ParticipantRow): Participant {
     participantNumber: row.participant_number,
     participantRef: row.participant_ref,
     cohort: row.cohort,
+    previewAgentId: row.preview_agent_id,
   };
 }
 
@@ -203,6 +205,17 @@ export class SupabaseStore implements FirstLookStore {
       .eq("participant_id", participantId);
     if (error) throw error;
     return (count ?? 0) > 0;
+  }
+
+  async setPreviewAgent(
+    participantId: string,
+    agentUserId: string,
+  ): Promise<void> {
+    const { error } = await client()
+      .from("participants")
+      .update({ preview_agent_id: agentUserId })
+      .eq("id", participantId);
+    if (error) throw error;
   }
 
   async insertEvent(event: EventRecord): Promise<void> {

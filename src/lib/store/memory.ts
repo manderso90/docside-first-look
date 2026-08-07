@@ -25,6 +25,7 @@ const participant: Participant = {
   participantNumber: 7,
   participantRef: "pr_dev0000",
   cohort: 1,
+  previewAgentId: null,
 };
 
 const invite: Invite = {
@@ -56,6 +57,7 @@ interface MemoryState {
   sessions: Map<string, Session>;
   events: EventRecord[];
   responses: Map<string, SurveyResponse>;
+  previewAgentByParticipant: Map<string, string>;
 }
 
 const globalState = globalThis as typeof globalThis & {
@@ -66,10 +68,16 @@ if (!globalState.__firstLookMemoryState) {
     sessions: new Map(),
     events: [],
     responses: new Map(),
+    previewAgentByParticipant: new Map(),
   };
   globalState.__firstLookMemoryState = fresh;
 }
-const { sessions, events, responses } = globalState.__firstLookMemoryState;
+// Older HMR-surviving state may predate a field; backfill defensively.
+if (!globalState.__firstLookMemoryState.previewAgentByParticipant) {
+  globalState.__firstLookMemoryState.previewAgentByParticipant = new Map();
+}
+const { sessions, events, responses, previewAgentByParticipant } =
+  globalState.__firstLookMemoryState;
 
 export class MemoryStore implements FirstLookStore {
   async lookupInvite(code: string): Promise<InviteLookup> {
@@ -86,7 +94,18 @@ export class MemoryStore implements FirstLookStore {
   }
 
   async getParticipant(participantId: string): Promise<Participant | null> {
-    return participantId === participant.id ? participant : null;
+    if (participantId !== participant.id) return null;
+    return {
+      ...participant,
+      previewAgentId: previewAgentByParticipant.get(participant.id) ?? null,
+    };
+  }
+
+  async setPreviewAgent(
+    participantId: string,
+    agentUserId: string,
+  ): Promise<void> {
+    previewAgentByParticipant.set(participantId, agentUserId);
   }
 
   async createSession(input: {

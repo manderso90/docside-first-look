@@ -77,7 +77,11 @@ export const EVENT_PROPERTIES: Record<string, z.ZodObject<z.ZodRawShape>> = {
 
 export const eventEnvelopeSchema = z.object({
   event: z.string(),
-  stage: z.enum(STAGES),
+  // Optional since Phase 4: app-originated events (app.docside.ai beacon)
+  // cannot know the shell's stage enum; the ingestion route derives it
+  // server-side from the session row — more trustworthy than any
+  // client-reported value. Shell-originated events still send it.
+  stage: z.enum(STAGES).optional(),
   ts_client: z.string(),
   properties: z.record(z.string(), z.unknown()).default({}),
 });

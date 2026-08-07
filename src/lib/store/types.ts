@@ -14,6 +14,11 @@ export interface Participant {
   /** Random, non-secret public reference (scheduling links etc.). Grants no access. */
   participantRef: string;
   cohort: number;
+  /** The provisioned docside preview agent (auth.users id), set at first
+   * launch by the Phase 4 handoff. Null before launch — and null again if
+   * the TTL reaper deleted the agent (ON DELETE SET NULL in docside's
+   * first_look schema), in which case launch re-provisions. */
+  previewAgentId: string | null;
 }
 
 export interface Invite {
@@ -91,6 +96,8 @@ export interface FirstLookStore {
   /** Latest lastStage across ALL of a participant's sessions (resume point). */
   furthestStage(participantId: string): Promise<Stage>;
   hasPriorSession(participantId: string): Promise<boolean>;
+  /** Persist the provisioned preview agent id (Phase 4 handoff linkage). */
+  setPreviewAgent(participantId: string, agentUserId: string): Promise<void>;
   insertEvent(event: EventRecord): Promise<void>;
   /** Upsert per (participant, part) — latest wins (BRIEF §9). */
   saveResponse(response: SurveyResponse): Promise<void>;
