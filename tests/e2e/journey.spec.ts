@@ -73,6 +73,13 @@ test("full participant journey: invite → seven screens → thank-you", async (
     await expect(page.getByText(`Offer · ${buyer}`)).toBeVisible();
   }
   await expect(page.getByText("Your Preview: 1 of 4")).toBeVisible();
+  // The "What you'll do" mission list (founder request 2026-08-09): all four
+  // BRIEF §6 task statements previewed before the handoff.
+  await expect(page.getByText("What you’ll do")).toBeVisible();
+  await expect(page.getByText(/Open the Okafor offer/)).toBeVisible();
+  await expect(page.getByText(/highlighted terms on the Reyes offer/)).toBeVisible();
+  await expect(page.getByText(/net proceeds, certainty, and a 30-day close/)).toBeVisible();
+  await expect(page.getByText(/summary you might share with your seller/)).toBeVisible();
   // Early-version framing, verbatim (CLAUDE.md hard rule).
   await expect(
     page.getByText(

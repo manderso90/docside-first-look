@@ -35,6 +35,28 @@ export default async function ScenarioPage() {
           ))}
         </div>
 
+        {/* "What you'll do" — the four missions, abbreviated faithfully from
+            BRIEF §6 task statements (no leading language). Founder request
+            2026-08-09: more hand-holding before the app handoff. */}
+        <div className="mt-6">
+          <p className="label-caps text-ink-3">What you&rsquo;ll do</p>
+          <ol className="mt-2.5 space-y-2 text-[13.5px] leading-relaxed text-ink-2">
+            {[
+              "Open the Okafor offer and find its purchase price, financing, deposit, and closing date.",
+              "Review the highlighted terms on the Reyes offer and confirm whether Docside read them correctly.",
+              "Compare the offers — your seller cares most about net proceeds, certainty, and a 30-day close — and decide which you would discuss first.",
+              "Preview the summary you might share with your seller and note what you would change before sending.",
+            ].map((mission, index) => (
+              <li key={mission} className="flex gap-2.5">
+                <span className="font-mono text-[12px] text-ink-3">
+                  {index + 1}
+                </span>
+                <span>{mission}</span>
+              </li>
+            ))}
+          </ol>
+        </div>
+
         <p className="label-caps mt-6 text-ink-3">Your Preview: 1 of 4</p>
 
         <p className="mt-6 border-t border-line-2 pt-5 text-[13.5px] leading-relaxed text-ink-3">
