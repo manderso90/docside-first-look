@@ -1,27 +1,29 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { getSessionContext } from "@/lib/session";
-import { mintWorkspaceHandoff } from "@/lib/preview-handoff";
 import { stageIndex, stagePath } from "@/lib/stages";
 import { Shell, ScreenTitle, Card } from "@/components/shell";
 import { SubmitButton } from "@/components/submit-button";
-import { completeMissionsDev } from "./actions";
+import { completeMissionsDev, enterWorkspace } from "./actions";
 
 /**
  * Screen 5's boundary (BRIEF §5.5). The real screen IS the docside app at
  * app.docside.ai in preview mode. With APP_HANDOFF_URL configured this page
- * provisions the preview workspace (idempotent) and redirects into the app
- * with a freshly minted session — first launch, mid-mission re-entry, and
- * retry all pass through here. When the mint fails, it renders a calm
- * try-again state instead of stranding the participant. Without
- * APP_HANDOFF_URL (local dev pre-wiring), the placeholder below keeps the
- * shell flow walkable.
+ * renders a brief interstitial — what the missions are about to be, and that
+ * the app's banner leads back here — and the Continue button's server action
+ * provisions + mints + redirects (founder request 2026-08-09: hand-holding at
+ * the handoff instead of a silent redirect).
  *
- * Reached only via redirects (launch action / stage resume), never via
- * Link — so no prefetch can mint a token that a later click would have
- * already invalidated.
+ * Minting happens ONLY in the enterWorkspace action, never at render: the
+ * magic-link token is single-use and short-lived, so a render-time mint would
+ * burn a token per refresh and could expire while the participant reads this
+ * page. ?retry=1 marks a failed mint and swaps in the calm try-again state.
  */
-export default async function WorkspacePage() {
+export default async function WorkspacePage({
+  searchParams,
+}: {
+  searchParams: Promise<{ retry?: string }>;
+}) {
   const ctx = await getSessionContext();
   if (!ctx) redirect("/link-inactive");
   const reached = stageIndex(ctx.session.lastStage);
@@ -29,35 +31,47 @@ export default async function WorkspacePage() {
   if (reached > stageIndex("mission_4")) redirect(stagePath(ctx.session.lastStage));
 
   if (process.env.APP_HANDOFF_URL) {
-    let handoffUrl: string | null = null;
-    try {
-      handoffUrl = await mintWorkspaceHandoff(ctx.participant);
-    } catch (error) {
-      // Message may carry an HTTP status, never a secret or token.
-      console.error("[first-look] workspace handoff failed", error);
+    const { retry } = await searchParams;
+    if (retry) {
+      return (
+        <Shell>
+          <Card>
+            <p className="label-caps text-attention">One moment</p>
+            <ScreenTitle>The workspace didn&apos;t connect.</ScreenTitle>
+            <p className="mt-4 text-[14px] leading-relaxed text-ink-2">
+              Nothing is lost — your preview picks up right where you left
+              off. Give it another try; if it keeps happening, reply to your
+              invitation email and Morris will take a look.
+            </p>
+            {/* Link styled as PrimaryButton (ui.tsx): back to the
+                interstitial, whose action does the minting. prefetch={false}
+                stays as belt-and-braces even though rendering /workspace no
+                longer mints anything. */}
+            <Link
+              href="/workspace"
+              prefetch={false}
+              className="mt-7 inline-flex items-center justify-center rounded-control bg-deep-ocean px-5 py-2.5 text-[14px] font-semibold text-white transition-colors duration-150 hover:bg-ocean-700 active:bg-midnight-slate"
+            >
+              Try again
+            </Link>
+          </Card>
+        </Shell>
+      );
     }
-    if (handoffUrl) redirect(handoffUrl);
 
     return (
       <Shell>
         <Card>
-          <p className="label-caps text-attention">One moment</p>
-          <ScreenTitle>The workspace didn&apos;t connect.</ScreenTitle>
+          <p className="label-caps text-deep-ocean">Entering Docside</p>
+          <ScreenTitle>You&apos;re entering Docside itself.</ScreenTitle>
           <p className="mt-4 text-[14px] leading-relaxed text-ink-2">
-            Nothing is lost — your preview picks up right where you left
-            off. Give it another try; if it keeps happening, reply to your
-            invitation email and Morris will take a look.
+            The four short missions happen inside the real application — the
+            Oakview offers are already waiting in your workspace. The banner
+            inside Docside will bring you back here when you&apos;re done.
           </p>
-          {/* Link styled as PrimaryButton (ui.tsx): a plain re-render retry.
-              prefetch={false} is load-bearing — a prefetch would mint a
-              token before the click and could invalidate one in flight. */}
-          <Link
-            href="/workspace"
-            prefetch={false}
-            className="mt-7 inline-flex items-center justify-center rounded-control bg-deep-ocean px-5 py-2.5 text-[14px] font-semibold text-white transition-colors duration-150 hover:bg-ocean-700 active:bg-midnight-slate"
-          >
-            Try again
-          </Link>
+          <form action={enterWorkspace} className="mt-7">
+            <SubmitButton>Continue to Docside</SubmitButton>
+          </form>
         </Card>
       </Shell>
     );

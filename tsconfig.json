@@ -32,9 +32,10 @@
     "**/*.ts",
     "**/*.tsx",
     ".next-e2e-desktop/types/**/*.ts",
+    ".next-e2e-mobile/types/**/*.ts",
     ".next/types/**/*.ts",
     "next-env.d.ts",
-    ".next-e2e-mobile/types/**/*.ts"
+    ".next-e2e-handoff/types/**/*.ts"
   ],
   "exclude": [
     "node_modules",

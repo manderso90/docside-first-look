@@ -32,6 +32,7 @@ export default defineConfig({
   projects: [
     {
       name: "desktop",
+      testIgnore: /workspace-interstitial\.spec\.ts/,
       use: {
         ...devices["Desktop Chrome"],
         baseURL: "http://localhost:4381",
@@ -43,6 +44,7 @@ export default defineConfig({
     },
     {
       name: "mobile-375",
+      testIgnore: /workspace-interstitial\.spec\.ts/,
       use: {
         browserName: "chromium",
         viewport: { width: 375, height: 667 },
@@ -50,6 +52,17 @@ export default defineConfig({
         isMobile: true,
         hasTouch: true,
         baseURL: "http://localhost:4382",
+      },
+    },
+    {
+      // The handoff interstitial needs APP_HANDOFF_URL set — its server
+      // points at an unreachable host so the mint-failure path is the one
+      // under test (see workspace-interstitial.spec.ts).
+      name: "handoff-interstitial",
+      testMatch: /workspace-interstitial\.spec\.ts/,
+      use: {
+        ...devices["Desktop Chrome"],
+        baseURL: "http://localhost:4383",
       },
     },
   ],
@@ -60,6 +73,11 @@ export default defineConfig({
       reuseExistingServer: false,
       timeout: 120_000,
       env: {
+        // Force the memory store: .env.local now carries Supabase creds
+        // (Phase 4 S1), but this suite is DESIGNED for the per-instance
+        // memory store and its /dev-preview-morris invite.
+        SUPABASE_URL: "",
+        SUPABASE_SERVICE_ROLE_KEY: "",
         NEXT_DIST_DIR: ".next-e2e-desktop",
         FOUNDER_VIDEO_URL: "",
         FOUNDER_VIDEO_CAPTIONS_URL: "",
@@ -75,8 +93,34 @@ export default defineConfig({
       reuseExistingServer: false,
       timeout: 120_000,
       env: {
+        // Force the memory store: .env.local now carries Supabase creds
+        // (Phase 4 S1), but this suite is DESIGNED for the per-instance
+        // memory store and its /dev-preview-morris invite.
+        SUPABASE_URL: "",
+        SUPABASE_SERVICE_ROLE_KEY: "",
         NEXT_DIST_DIR: ".next-e2e-mobile",
         SCHEDULE_URL: "https://schedule.example.invalid/morris",
+      },
+    },
+    {
+      command: "pnpm dev --port 4383",
+      url: "http://localhost:4383",
+      reuseExistingServer: false,
+      timeout: 120_000,
+      env: {
+        // Force the memory store: .env.local now carries Supabase creds
+        // (Phase 4 S1), but this suite is DESIGNED for the per-instance
+        // memory store and its /dev-preview-morris invite.
+        SUPABASE_URL: "",
+        SUPABASE_SERVICE_ROLE_KEY: "",
+        NEXT_DIST_DIR: ".next-e2e-handoff",
+        FOUNDER_VIDEO_URL: "",
+        FOUNDER_VIDEO_CAPTIONS_URL: "",
+        SCHEDULE_URL: "https://schedule.example.invalid/morris",
+        // Unreachable by design: provision fails on Continue, so the
+        // interstitial's mint-failure path is exercised with no real app.
+        APP_HANDOFF_URL: "http://127.0.0.1:9",
+        FIRST_LOOK_PROVISION_SECRET: "e2e-synthetic-secret",
       },
     },
   ],
