@@ -1,0 +1,12 @@
+/*
+ * First Look UI lab — fence stylesheet (plan: ui-lab Phase 1 shell).
+ *
+ * CONTAINMENT CONTRACT: Next.js bundles this file globally once any lab
+ * route loads, so the fence is the SELECTOR, not the import — every rule
+ * here must start with [data-fl], and keyframes must carry the fl- prefix
+ * (keyframe names are global). Enforced by scripts/ui-lab-fence-audit.mjs.
+ */
+
+[data-fl] {
+  min-height: 100dvh;
+}
