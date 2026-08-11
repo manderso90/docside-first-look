@@ -1,12 +1,807 @@
 /*
- * First Look UI lab — fence stylesheet (plan: ui-lab Phase 1 shell).
+ * First Look UI lab — fence stylesheet (plan: ui-lab Phases 2–4).
  *
  * CONTAINMENT CONTRACT: Next.js bundles this file globally once any lab
  * route loads, so the fence is the SELECTOR, not the import — every rule
  * here must start with [data-fl], and keyframes must carry the fl- prefix
  * (keyframe names are global). Enforced by scripts/ui-lab-fence-audit.mjs.
+ *
+ * Values are ported VERBATIM from design-reference/first-look-ui-exploration.html
+ * (radii, paddings, font sizes, border widths, transition timings), ordered to
+ * mirror that file for cheap diffing. Do not "improve" values here — the lab
+ * exists to judge the exploration as designed.
+ *
+ * ── Duplication register (accepted cost of containment; the future ──────────
+ * ── promotion's first work item — see plan §Phase 2) ────────────────────────
+ * Brand-set tokens duplicating src/app/globals.css @theme by value:
+ *   --canvas         = --color-paper        #ecece8
+ *   --card           = --color-surface      #fefefe
+ *   --card-2         = --color-surface-2    #f6f5f3
+ *   --ink            = --color-ink          #161616
+ *   --ink-2          = --color-ink-2        #2d2d2b
+ *   --line-2         = --color-line         #c7c7c7   (name CROSSED)
+ *   --primary        = --color-deep-ocean   #115073
+ *   --primary-deep   = --color-midnight-slate #0e2735
+ *   --primary-soft   = --color-ocean-50     #eef4f8
+ *   --primary-line   = --color-ocean-200    #bfd0db
+ *   --success        = --color-success-deep #3f7a2e   (semantic step SHIFTED)
+ *   --success-soft   = --color-success-soft #e8f4e2
+ *   --success-line   = --color-success-line #b7dca9
+ *   --attention{,-soft,-line} = --color-attention{,-soft,-line}
+ *   --r-card         = --radius-card        10px
+ *   --r-control      = --radius-control     5.5px
+ *   --shadow-card    = --shadow-card        (identical)
+ *   font stacks      = --font-{sans,display,mono} (via the same next/font vars)
+ *   easing           = --ease-calm          cubic-bezier(0.16,1,0.3,1)
+ * Brand-set tokens that DIVERGE from @theme (ported verbatim per plan Q3):
+ *   --ink-3 #6d6d69 (repo: #434341) · --line #dcdbd4 (repo has no equivalent)
+ *   --success-deep #35682c (absent) · --shadow-pop (absent)
+ *   --display-weight/--display-tracking (absent as tokens)
+ * The proposed set duplicates nothing anywhere — it is a first definition.
  */
 
+/* ============================== tokens ============================== */
+
 [data-fl] {
+  /* proposed direction (exploration :root, verbatim) */
+  --canvas: #f1f5f9;
+  --card: #ffffff;
+  --card-2: #f8fafc;
+  --ink: #0f172a;
+  --ink-2: #475569;
+  --ink-3: #7c8aa0;
+  --line: #e2e8f0;
+  --line-2: #cbd5e1;
+  --primary: #2563eb;
+  --primary-deep: #1e40af;
+  --primary-soft: #eff6ff;
+  --primary-line: #bfdbfe;
+  --success: #059669;
+  --success-deep: #047857;
+  --success-soft: #ecfdf5;
+  --success-line: #a7f3d0;
+  --attention: #b45309;
+  --attention-soft: #fffbeb;
+  --attention-line: #fde68a;
+  --r-card: 16px;
+  --r-control: 10px;
+  --shadow-card: 0 1px 2px rgba(15, 23, 42, 0.05), 0 6px 20px rgba(15, 23, 42, 0.07);
+  --shadow-pop: 0 4px 10px rgba(15, 23, 42, 0.08), 0 18px 44px rgba(15, 23, 42, 0.16);
+  --font-sans: var(--font-fl-inter), -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", sans-serif;
+  --font-display: var(--font-sans);
+  --font-mono: var(--font-fl-mono), ui-monospace, "SF Mono", SFMono-Regular, Menlo, Consolas, monospace;
+  --display-weight: 700;
+  --display-tracking: -0.025em;
+  --ease-fl: cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+[data-fl][data-palette="brand"] {
+  /* locked Docside tokens (exploration body.brand, verbatim — see register) */
+  --canvas: #ecece8;
+  --card: #fefefe;
+  --card-2: #f6f5f3;
+  --ink: #161616;
+  --ink-2: #2d2d2b;
+  --ink-3: #6d6d69;
+  --line: #dcdbd4;
+  --line-2: #c7c7c7;
+  --primary: #115073;
+  --primary-deep: #0e2735;
+  --primary-soft: #eef4f8;
+  --primary-line: #bfd0db;
+  --success: #3f7a2e;
+  --success-deep: #35682c;
+  --success-soft: #e8f4e2;
+  --success-line: #b7dca9;
+  --attention: #a0701a;
+  --attention-soft: #f8f0dd;
+  --attention-line: #e7d2a4;
+  --r-card: 10px;
+  --r-control: 5.5px;
+  --shadow-card: 0 1px 2px rgba(14, 39, 53, 0.05), 0 4px 16px rgba(14, 39, 53, 0.06);
+  --shadow-pop: 0 3px 8px rgba(14, 39, 53, 0.08), 0 14px 36px rgba(14, 39, 53, 0.14);
+  --font-sans: var(--font-plex-sans), -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  --font-display: var(--font-plex-serif), Georgia, "Times New Roman", serif;
+  --display-weight: 600;
+  --display-tracking: -0.01em;
+}
+
+/* ====================== surface (body register) ===================== */
+/* The exploration styles body; here the wrapper IS the page surface. */
+
+[data-fl] {
+  box-sizing: border-box;
   min-height: 100dvh;
+  background: var(--canvas);
+  color: var(--ink);
+  font-family: var(--font-sans);
+  font-size: 14.5px;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+  transition: background 0.25s ease;
+}
+
+[data-fl] *,
+[data-fl] *::before,
+[data-fl] *::after {
+  box-sizing: border-box;
+}
+
+[data-fl] button {
+  font-family: inherit;
+  cursor: pointer;
+}
+
+[data-fl] :focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+[data-fl] .caps {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+[data-fl] .mono {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+}
+
+/* ========================= shared layout =========================== */
+
+[data-fl] .wrap {
+  max-width: 1120px;
+  margin: 0 auto;
+  padding: 40px 24px 64px;
+  animation: fl-screen-in 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+[data-fl] .wrap-narrow {
+  max-width: 680px;
+  margin: 0 auto;
+  padding: 56px 24px 64px;
+  animation: fl-screen-in 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes fl-screen-in {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+[data-fl] .preview-eyebrow {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: var(--ink-3);
+}
+
+[data-fl] .preview-eyebrow .dotset {
+  display: flex;
+  gap: 5px;
+}
+
+[data-fl] .preview-eyebrow .dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--line-2);
+}
+
+[data-fl] .preview-eyebrow .dot.done {
+  background: var(--primary);
+}
+
+[data-fl] .display {
+  font-family: var(--font-display);
+  font-weight: var(--display-weight);
+  letter-spacing: var(--display-tracking);
+  text-wrap: balance;
+  margin: 10px 0 0;
+  font-size: 34px;
+  line-height: 1.15;
+  color: var(--ink);
+}
+
+[data-fl] .subline {
+  margin: 10px 0 0;
+  color: var(--ink-2);
+  font-size: 15px;
+  max-width: 62ch;
+}
+
+[data-fl] .subline b {
+  color: var(--ink);
+  font-weight: 600;
+}
+
+[data-fl] .flatbadges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 18px;
+}
+
+[data-fl] .flatbadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: var(--card);
+  color: var(--ink-2);
+  font-size: 12px;
+  font-weight: 600;
+  padding: 5px 12px;
+}
+
+[data-fl] .flatbadge svg {
+  color: var(--primary);
+}
+
+/* ========================= offer hero cards ======================== */
+
+[data-fl] .offers {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 18px;
+  margin-top: 28px;
+}
+
+@media (max-width: 880px) {
+  [data-fl] .offers {
+    grid-template-columns: 1fr;
+  }
+}
+
+[data-fl] .offer-card {
+  display: flex;
+  flex-direction: column;
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: var(--r-card);
+  box-shadow: var(--shadow-card);
+  transition: box-shadow 0.2s ease, border-color 0.2s ease, transform 0.2s ease;
+}
+
+[data-fl] .offer-card:hover {
+  box-shadow: var(--shadow-pop);
+  border-color: var(--line-2);
+  transform: translateY(-2px);
+}
+
+[data-fl] .offer-head {
+  padding: 20px 20px 18px;
+  border-bottom: 1px solid var(--line);
+}
+
+[data-fl] .offer-head-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+[data-fl] .tierbadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  border-radius: 999px;
+  font-size: 11.5px;
+  font-weight: 700;
+  letter-spacing: 0.01em;
+  padding: 4px 10px;
+}
+
+[data-fl] .tierbadge.success {
+  background: var(--success-soft);
+  color: var(--success-deep);
+  border: 1px solid var(--success-line);
+}
+
+[data-fl] .tierbadge.primary {
+  background: var(--primary-soft);
+  color: var(--primary);
+  border: 1px solid var(--primary-line);
+}
+
+[data-fl] .tierbadge.neutral {
+  background: var(--card-2);
+  color: var(--ink-2);
+  border: 1px solid var(--line);
+}
+
+[data-fl] .offer-no {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--ink-3);
+  letter-spacing: 0.08em;
+}
+
+[data-fl] .offer-buyer {
+  margin-top: 14px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--ink-2);
+}
+
+/* Data-driven addition (not in the exploration): per-card property line for
+   the multi-property stress dataset. Remove if the stress mode is retired. */
+[data-fl] .offer-addr {
+  margin: 2px 0 0;
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  color: var(--ink-3);
+}
+
+[data-fl] .offer-price {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  font-size: 34px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  color: var(--ink);
+  margin-top: 2px;
+  line-height: 1.1;
+}
+
+[data-fl] .offer-price-label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 6px;
+  color: var(--ink-3);
+  font-size: 12px;
+}
+
+[data-fl] .srcchip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  color: var(--primary);
+  background: var(--primary-soft);
+  border: 1px solid var(--primary-line);
+  border-radius: 5px;
+  padding: 1.5px 6px;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+
+[data-fl] .srcchip:hover {
+  background: var(--primary-line);
+}
+
+[data-fl] .offer-terms {
+  padding: 6px 20px 18px;
+  display: flex;
+  flex-direction: column;
+}
+
+[data-fl] .term-row {
+  padding: 13px 0;
+  border-bottom: 1px solid var(--card-2);
+}
+
+[data-fl] .term-row:last-child {
+  border-bottom: 0;
+}
+
+[data-fl] .term-label {
+  color: var(--ink-3);
+  font-size: 12px;
+  font-weight: 600;
+  margin-bottom: 6px;
+}
+
+[data-fl] .chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  align-items: center;
+}
+
+[data-fl] .chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  border-radius: 7px;
+  font-size: 12px;
+  font-weight: 600;
+  padding: 3.5px 9px;
+}
+
+[data-fl] .chip.good {
+  background: var(--success-soft);
+  color: var(--success-deep);
+}
+
+[data-fl] .chip.warn {
+  background: var(--attention-soft);
+  color: var(--attention);
+}
+
+[data-fl] .chip.flat {
+  background: var(--card-2);
+  color: var(--ink-2);
+}
+
+/* ========================= micro-timeline ========================== */
+
+[data-fl] .tl {
+  margin-top: 4px;
+}
+
+[data-fl] .tl-track {
+  position: relative;
+  height: 6px;
+  border-radius: 999px;
+  background: var(--card-2);
+  border: 1px solid var(--line);
+}
+
+[data-fl] .tl-fill {
+  position: absolute;
+  inset: 0 auto 0 0;
+  border-radius: 999px;
+  background: linear-gradient(90deg, var(--primary), var(--primary-deep));
+  transition: width 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+[data-fl] .tl-dot {
+  position: absolute;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  width: 11px;
+  height: 11px;
+  border-radius: 50%;
+  background: var(--card);
+  border: 2.5px solid var(--primary-deep);
+}
+
+[data-fl] .tl-caption {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 7px;
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  color: var(--ink-3);
+}
+
+/* Data-driven addition: honest empty state for offers that state no close
+   term (the exploration assumes every offer has one; real data does not). */
+[data-fl] .tl.not-stated .tl-track {
+  background: transparent;
+  border-style: dashed;
+}
+
+[data-fl] .tl.not-stated .tl-caption {
+  justify-content: flex-start;
+}
+
+/* ========================= comparison grid ========================= */
+
+[data-fl] .gridcard {
+  margin-top: 30px;
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: var(--r-card);
+  box-shadow: var(--shadow-card);
+  overflow: hidden;
+}
+
+[data-fl] .gridcard-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 18px 22px 14px;
+  flex-wrap: wrap;
+}
+
+[data-fl] .gridcard-head h2 {
+  margin: 0;
+  font-family: var(--font-display);
+  font-weight: var(--display-weight);
+  letter-spacing: var(--display-tracking);
+  font-size: 19px;
+}
+
+[data-fl] .gridcard-head .hint {
+  color: var(--ink-3);
+  font-size: 12.5px;
+}
+
+[data-fl] .cmp-scroll {
+  overflow-x: auto;
+}
+
+[data-fl] .cmp {
+  min-width: 720px;
+  width: 100%;
+  border-collapse: collapse;
+}
+
+[data-fl] .cmp th,
+[data-fl] .cmp td {
+  text-align: left;
+  padding: 14px 22px;
+  vertical-align: top;
+}
+
+[data-fl] .cmp thead th {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--ink-3);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  border-bottom: 1px solid var(--line);
+}
+
+[data-fl] .cmp thead th .buyer {
+  display: block;
+  font-family: var(--font-sans);
+  font-size: 14px;
+  color: var(--ink);
+  letter-spacing: 0;
+  text-transform: none;
+  margin-top: 2px;
+}
+
+[data-fl] .cmp tbody tr:nth-child(odd) {
+  background: var(--card-2);
+}
+
+[data-fl] .cmp tbody tr {
+  transition: box-shadow 0.15s ease;
+}
+
+[data-fl] .cmp tbody tr:hover {
+  box-shadow: inset 0 0 0 2px var(--primary-line);
+}
+
+[data-fl] .cmp .dim {
+  font-weight: 600;
+  color: var(--ink-2);
+  font-size: 13px;
+  white-space: nowrap;
+}
+
+[data-fl] .cmp .val {
+  font-size: 13.5px;
+  color: var(--ink);
+}
+
+[data-fl] .cmp .val .mono-val {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  font-weight: 600;
+}
+
+[data-fl] .cmp .val.lead .mono-val {
+  color: var(--success-deep);
+}
+
+[data-fl] .leadmark {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  color: var(--success-deep);
+  font-size: 11px;
+  font-weight: 700;
+  margin-left: 6px;
+}
+
+[data-fl] .cmp .src {
+  margin-top: 5px;
+}
+
+/* ======================== sticky action bar ======================== */
+
+[data-fl] .actionbar-slot {
+  position: sticky;
+  bottom: 18px;
+  margin-top: 34px;
+  z-index: 40;
+}
+
+[data-fl] .actionbar {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  flex-wrap: wrap;
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  box-shadow: var(--shadow-pop);
+  padding: 13px 18px;
+}
+
+[data-fl] .actionbar .msg {
+  color: var(--ink-2);
+  font-size: 13px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+[data-fl] .actionbar .msg svg {
+  color: var(--success);
+  flex: none;
+}
+
+[data-fl] .actionbar .grow {
+  flex: 1;
+}
+
+[data-fl] .btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  justify-content: center;
+  border-radius: var(--r-control);
+  font-size: 13.5px;
+  font-weight: 600;
+  padding: 10px 18px;
+  transition: background 0.15s ease, border-color 0.15s ease, transform 0.1s ease;
+}
+
+[data-fl] .btn:active {
+  transform: scale(0.98);
+}
+
+[data-fl] .btn:disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
+  transform: none;
+}
+
+[data-fl] .btn-primary {
+  background: var(--primary);
+  border: 1px solid var(--primary);
+  color: #ffffff;
+}
+
+[data-fl] .btn-primary:hover:not(:disabled) {
+  background: var(--primary-deep);
+  border-color: var(--primary-deep);
+}
+
+[data-fl] .btn-outline {
+  background: var(--card);
+  border: 1px solid var(--line-2);
+  color: var(--ink-2);
+}
+
+[data-fl] .btn-outline:hover:not(:disabled) {
+  border-color: var(--primary);
+  color: var(--primary);
+  background: var(--primary-soft);
+}
+
+[data-fl] .btn-ghost {
+  background: transparent;
+  border: 1px solid transparent;
+  color: var(--ink-3);
+}
+
+[data-fl] .btn-ghost:hover:not(:disabled) {
+  color: var(--ink);
+  background: var(--card-2);
+}
+
+/* =========================== lab chrome ============================ */
+/* Lab-only affordances (gallery sections, palette toggle, dataset note).
+   These never promote — delete with the lab. */
+
+[data-fl] .lab-section {
+  margin-top: 44px;
+}
+
+[data-fl] .lab-section > h2 {
+  font-family: var(--font-display);
+  font-weight: var(--display-weight);
+  letter-spacing: var(--display-tracking);
+  font-size: 23px;
+  margin: 0 0 4px;
+}
+
+[data-fl] .lab-section > .lab-note {
+  color: var(--ink-3);
+  font-size: 12.5px;
+  margin: 0 0 16px;
+}
+
+[data-fl] .lab-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+  margin-top: 10px;
+}
+
+[data-fl] .lab-swatches {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  gap: 10px;
+}
+
+[data-fl] .lab-swatch {
+  border: 1px solid var(--line);
+  border-radius: var(--r-control);
+  overflow: hidden;
+  background: var(--card);
+}
+
+[data-fl] .lab-swatch .well {
+  height: 44px;
+}
+
+[data-fl] .lab-swatch .meta {
+  padding: 6px 9px;
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  color: var(--ink-2);
+}
+
+[data-fl] .lab-toggle {
+  position: fixed;
+  right: 18px;
+  top: 18px;
+  z-index: 60;
+  display: flex;
+  gap: 2px;
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  padding: 3px;
+  box-shadow: var(--shadow-card);
+}
+
+[data-fl] .lab-toggle a {
+  text-decoration: none;
+  color: var(--ink-3);
+  font-size: 12px;
+  font-weight: 600;
+  padding: 5px 12px;
+  border-radius: 999px;
+}
+
+[data-fl] .lab-toggle a[aria-current="true"] {
+  background: var(--primary);
+  color: #ffffff;
+}
+
+[data-fl] .lab-list {
+  margin: 0;
+  padding-left: 18px;
+  color: var(--ink-2);
+  font-size: 13.5px;
+  line-height: 1.7;
+}
+
+[data-fl] .lab-list b {
+  color: var(--ink);
+}
+
+/* ========================== reduced motion ========================= */
+
+@media (prefers-reduced-motion: reduce) {
+  [data-fl] *,
+  [data-fl] *::before,
+  [data-fl] *::after {
+    animation-duration: 0.01ms !important;
+    animation-delay: 0s !important;
+    transition-duration: 0.01ms !important;
+  }
 }
