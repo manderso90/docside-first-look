@@ -1,4 +1,3 @@
-import Link from "next/link";
 import type { FlPalette } from "./surface";
 
 /**
@@ -23,9 +22,9 @@ export function PaletteToggle({
   return (
     <nav className="lab-toggle" aria-label="Palette (lab-only)">
       {(["proposed", "brand"] as const).map((p) => (
-        <Link key={p} href={href(p)} aria-current={p === current ? "true" : undefined}>
+        <a key={p} href={href(p)} aria-current={p === current ? "true" : undefined}>
           {p === "proposed" ? "Proposed" : "Docside tokens"}
-        </Link>
+        </a>
       ))}
     </nav>
   );

@@ -1,4 +1,3 @@
-import Link from "next/link";
 import { FlSurface, resolvePalette } from "@/components/first-look-ui/surface";
 import { PaletteToggle } from "@/components/first-look-ui/palette-toggle";
 import { SourceChip } from "@/components/first-look-ui/source-chip";
@@ -60,18 +59,18 @@ export default async function UiLabIndex({
           The exploration&rsquo;s primitives, ported verbatim and rendered under
           both candidate token sets. Dev-only; gated by FL_UI_LAB. The decision
           screen is the{" "}
-          <Link href={`/ui-lab/dashboard?palette=${palette}`}>offer dashboard</Link>.
+          <a href={`/ui-lab/dashboard?palette=${palette}`}>offer dashboard</a>.
         </p>
         <div className="lab-row">
-          <Link className="btn btn-primary" href={`/ui-lab/dashboard?palette=${palette}`}>
+          <a className="btn btn-primary" href={`/ui-lab/dashboard?palette=${palette}`}>
             Open the offer dashboard
-          </Link>
-          <Link
+          </a>
+          <a
             className="btn btn-outline"
             href={`/ui-lab/dashboard?palette=${palette}&data=fixtures`}
           >
             Dashboard · fixture stress mode
-          </Link>
+          </a>
         </div>
 
         <section className="lab-section">

@@ -102,7 +102,10 @@ const LAB_DIRS = [
   join(dirname(fileURLToPath(import.meta.url)), "..", "src", "components", "first-look-ui"),
   join(dirname(fileURLToPath(import.meta.url)), "..", "src", "lib", "first-look-ui"),
 ];
-const FORBIDDEN = /from\s+"@\/(?!components\/first-look-ui|lib\/first-look-ui)[^"]+"/;
+// next/link is banned too: its prefetch compiles additional lab entries into
+// a dev session and re-triggers the chunk corruption. The lab uses plain <a>.
+const FORBIDDEN =
+  /from\s+"(?:next\/link|@\/(?!components\/first-look-ui|lib\/first-look-ui)[^"]+)"/;
 
 function* walkFiles(dir) {
   let entries = [];
