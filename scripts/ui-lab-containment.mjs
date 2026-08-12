@@ -23,14 +23,15 @@
 // Each viewport gets a fresh server (the memory store's single participant
 // walks forward only). Wall time ~2–3 min.
 
-import { spawn } from "node:child_process";
+import { spawn, spawnSync } from "node:child_process";
 import { mkdirSync } from "node:fs";
 import { join } from "node:path";
 import { chromium } from "@playwright/test";
 
-const OUT = process.argv[2];
+const PROD = process.argv.includes("--prod");
+const OUT = process.argv.slice(2).find((a) => a !== "--prod");
 if (!OUT) {
-  console.error("usage: node scripts/ui-lab-containment.mjs <outDir>");
+  console.error("usage: node scripts/ui-lab-containment.mjs <outDir> [--prod]");
   process.exit(1);
 }
 mkdirSync(OUT, { recursive: true });
@@ -43,7 +44,7 @@ const SERVER_ENV = {
   // silently flip the store otherwise.
   SUPABASE_URL: "",
   SUPABASE_SERVICE_ROLE_KEY: "",
-  NEXT_DIST_DIR: ".next-e2e-containment",
+  NEXT_DIST_DIR: PROD ? ".next-prod-shots" : ".next-e2e-containment",
   FOUNDER_VIDEO_URL: "",
   FOUNDER_VIDEO_CAPTIONS_URL: "",
   SCHEDULE_URL: "https://schedule.example.invalid/morris",
@@ -54,7 +55,7 @@ const SERVER_ENV = {
 };
 
 function startServer() {
-  const child = spawn("pnpm", ["dev", "--port", String(PORT)], {
+  const child = spawn("pnpm", [PROD ? "start" : "dev", "--port", String(PORT)], {
     env: SERVER_ENV,
     stdio: "ignore",
     detached: true,
@@ -196,6 +197,17 @@ async function walk(viewport, tag) {
     stopServer(server);
     // give the port a moment to free before the next walk
     await new Promise((r) => setTimeout(r, 2000));
+  }
+}
+
+if (PROD) {
+  // Production-mode pass: one build with the same hermetic env, then each
+  // walk serves it with `next start` instead of the dev server.
+  console.log("Building production bundle (.next-prod-shots) …");
+  const build = spawnSync("pnpm", ["build"], { env: SERVER_ENV, stdio: "inherit" });
+  if (build.status !== 0) {
+    console.error("production build failed");
+    process.exit(1);
   }
 }
 

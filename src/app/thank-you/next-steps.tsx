@@ -19,15 +19,8 @@ export function NextSteps() {
     return <p className="text-[14px] font-medium text-ink">{message}</p>;
   }
 
-  // Stage A3: the exploration's primary → outline → ghost ladder, centered.
-  // Equal-weight rule kept in substance: all three remain plain one-click
-  // choices with no default and no persuasion copy.
-  const VARIANT: Record<NextStepChoice, string> = {
-    own_docs: "btn-primary",
-    next_round: "btn-outline",
-    finished: "btn-ghost",
-  };
-
+  // Founder decision 2026-08-12: all three choices render identically (outline)
+  // so the screen never reads as a conversion funnel (BRIEF §5.7 equal weight).
   return (
     <div className="flex flex-col justify-center gap-2.5 sm:flex-row">
       {CHOICES.map((choice) => (
@@ -40,7 +33,7 @@ export function NextSteps() {
               setMessage(await chooseNextStep(choice.id));
             })
           }
-          className={`btn ${VARIANT[choice.id]}`}
+          className="btn btn-outline"
         >
           {choice.label}
         </button>
