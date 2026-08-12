@@ -28,9 +28,9 @@ const TOKEN_NAMES = [
 const CHECKPOINT: ReadonlyArray<{ step: string; state: "done" | "open" }> = [
   { step: "Choose the palette — DONE 2026-08-11: Docside tokens.", state: "done" },
   { step: "Delete the losing palette and the toggle — DONE (grep data-palette|palette-toggle → empty).", state: "done" },
-  { step: "Choose where components promote: First Look shell, main Docside app, or both.", state: "open" },
-  { step: "Delete or archive the lab-only data loading (fixtures.ts stress mode).", state: "open" },
-  { step: "Write the promotion/migration plan BEFORE touching any production screen.", state: "open" },
+  { step: "Choose where components promote — PROPOSED in docs/PROMOTION.md (shell first; app gated on a feedback round). Awaiting founder sign-off.", state: "open" },
+  { step: "Delete or archive the lab-only data loading (fixtures.ts stress mode) — scheduled at Stage A end, see docs/PROMOTION.md §A5.", state: "open" },
+  { step: "Write the promotion/migration plan — DONE 2026-08-11: docs/PROMOTION.md.", state: "done" },
 ];
 
 export default function UiLabIndex() {
