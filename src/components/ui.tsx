@@ -6,10 +6,12 @@ export function PrimaryButton({
   className = "",
   ...props
 }: ButtonHTMLAttributes<HTMLButtonElement>) {
+  // Vocabulary .btn-primary values (Stage A3): 13.5px / 10×18 padding /
+  // :active scale, brand hover ramp kept.
   return (
     <button
       {...props}
-      className={`inline-flex items-center justify-center rounded-control bg-deep-ocean px-5 py-2.5 text-[14px] font-semibold text-white transition-colors duration-150 hover:bg-ocean-700 active:bg-midnight-slate disabled:cursor-not-allowed disabled:bg-muted disabled:text-surface-2 ${className}`}
+      className={`inline-flex items-center justify-center gap-2 rounded-control bg-deep-ocean px-[18px] py-2.5 text-[13.5px] font-semibold text-white transition-[background-color,transform] duration-150 hover:bg-ocean-700 active:bg-midnight-slate active:scale-[0.98] disabled:cursor-not-allowed disabled:bg-muted disabled:text-surface-2 disabled:active:scale-100 ${className}`}
     />
   );
 }
@@ -30,10 +32,12 @@ export function TextArea({
   className = "",
   ...props
 }: TextareaHTMLAttributes<HTMLTextAreaElement>) {
+  // Vocabulary survey-input treatment (Stage A3): 1.5px soft hairline, 12px
+  // radius, Deep Ocean focus ring.
   return (
     <textarea
       {...props}
-      className={`w-full rounded-control border border-line bg-surface px-3.5 py-2.5 text-[14px] text-ink placeholder:text-muted focus:border-verified-line disabled:bg-surface-2 disabled:text-muted ${className}`}
+      className={`w-full rounded-[12px] border-[1.5px] border-line-soft bg-surface px-[15px] py-[13px] text-[14px] leading-[1.55] text-ink placeholder:text-ink-soft focus:border-deep-ocean focus:shadow-[0_0_0_1px_var(--color-deep-ocean)] focus:outline-none disabled:bg-surface-2 disabled:text-muted ${className}`}
     />
   );
 }

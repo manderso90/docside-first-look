@@ -1,0 +1,813 @@
+/*
+ * First Look UI vocabulary — GLOBAL stylesheet (promoted from the /ui-lab
+ * fence at Stage A2, docs/PROMOTION.md; founder sign-off 2026-08-11).
+ *
+ * Values ported verbatim from design-reference/first-look-ui-exploration.html
+ * (with the two decided deviations: Docside token set only; .srcchip border
+ * 1.5px). Tokens live in src/app/globals.css @theme; this file holds only
+ * component/layout rules. Imported by the root layout after globals.css.
+ *
+ * Name mapping from the retired fence tokens (the duplication register is
+ * hereby collapsed): canvas→color-paper · card→color-surface ·
+ * card-2→color-surface-2 · ink-3→color-ink-soft (vocabulary value) ·
+ * line→color-line-soft · line-2→color-line (crossed naming resolved) ·
+ * primary→color-deep-ocean · primary-deep→color-midnight-slate ·
+ * primary-soft→color-ocean-50 · primary-line→color-ocean-200 ·
+ * success ramp→color-success{,-deep,-soft,-line} · r-*→radius-* ·
+ * ease-fl→ease-calm · display weight/tracking→literal 600 / -0.01em.
+ */
+
+/* ========================= shared layout =========================== */
+
+.wrap {
+  max-width: 1120px;
+  margin: 0 auto;
+  padding: 40px 24px 64px;
+  animation: screen-in 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.wrap-narrow {
+  max-width: 680px;
+  margin: 0 auto;
+  padding: 56px 24px 64px;
+  animation: screen-in 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes screen-in {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.preview-eyebrow {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: var(--color-ink-soft);
+}
+
+.preview-eyebrow .dotset {
+  display: flex;
+  gap: 5px;
+}
+
+.preview-eyebrow .dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--color-line);
+}
+
+.preview-eyebrow .dot.done {
+  background: var(--color-deep-ocean);
+}
+
+.display {
+  font-family: var(--font-display);
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  text-wrap: balance;
+  margin: 10px 0 0;
+  font-size: 34px;
+  line-height: 1.15;
+  color: var(--color-ink);
+}
+
+.subline {
+  margin: 10px 0 0;
+  color: var(--color-ink-2);
+  font-size: 15px;
+  max-width: 62ch;
+}
+
+.subline b {
+  color: var(--color-ink);
+  font-weight: 600;
+}
+
+.flatbadges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 18px;
+}
+
+.flatbadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  border: 1px solid var(--color-line-soft);
+  border-radius: 999px;
+  background: var(--color-surface);
+  color: var(--color-ink-2);
+  font-size: 12px;
+  font-weight: 600;
+  padding: 5px 12px;
+}
+
+.flatbadge svg {
+  color: var(--color-deep-ocean);
+}
+
+/* ========================= offer hero cards ======================== */
+
+.offers {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 18px;
+  margin-top: 28px;
+}
+
+@media (max-width: 880px) {
+  .offers {
+    grid-template-columns: 1fr;
+  }
+}
+
+.offer-card {
+  display: flex;
+  flex-direction: column;
+  background: var(--color-surface);
+  border: 1px solid var(--color-line-soft);
+  border-radius: var(--radius-card);
+  box-shadow: var(--shadow-card);
+  transition: box-shadow 0.2s ease, border-color 0.2s ease, transform 0.2s ease;
+}
+
+.offer-card:hover {
+  box-shadow: var(--shadow-pop);
+  border-color: var(--color-line);
+  transform: translateY(-2px);
+}
+
+.offer-head {
+  padding: 20px 20px 18px;
+  border-bottom: 1px solid var(--color-line-soft);
+}
+
+.offer-head-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.tierbadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  border-radius: 999px;
+  font-size: 11.5px;
+  font-weight: 700;
+  letter-spacing: 0.01em;
+  padding: 4px 10px;
+}
+
+.tierbadge.success {
+  background: var(--color-success-soft);
+  color: var(--color-success-deep);
+  border: 1px solid var(--color-success-line);
+}
+
+.tierbadge.primary {
+  background: var(--color-ocean-50);
+  color: var(--color-deep-ocean);
+  border: 1px solid var(--color-ocean-200);
+}
+
+.tierbadge.neutral {
+  background: var(--color-surface-2);
+  color: var(--color-ink-2);
+  border: 1px solid var(--color-line-soft);
+}
+
+.offer-no {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--color-ink-soft);
+  letter-spacing: 0.08em;
+}
+
+.offer-buyer {
+  margin-top: 14px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--color-ink-2);
+}
+
+/* Data-driven addition (not in the exploration): per-card property line for
+   the multi-property stress dataset. Remove if the stress mode is retired. */
+.offer-addr {
+  margin: 2px 0 0;
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  color: var(--color-ink-soft);
+}
+
+.offer-price {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  font-size: 34px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  color: var(--color-ink);
+  margin-top: 2px;
+  line-height: 1.1;
+}
+
+.offer-price-label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 6px;
+  color: var(--color-ink-soft);
+  font-size: 12px;
+}
+
+.srcchip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  color: var(--color-deep-ocean);
+  background: var(--color-ocean-50);
+  /* 1.5px vs the exploration's 1px — founder request 2026-08-11: strengthen
+     the clickable affordance under the quieter Deep Ocean palette. */
+  border: 1.5px solid var(--color-ocean-200);
+  border-radius: 5px;
+  padding: 1.5px 6px;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+
+.srcchip:hover {
+  background: var(--color-ocean-200);
+}
+
+.offer-terms {
+  padding: 6px 20px 18px;
+  display: flex;
+  flex-direction: column;
+}
+
+.term-row {
+  padding: 13px 0;
+  border-bottom: 1px solid var(--color-surface-2);
+}
+
+.term-row:last-child {
+  border-bottom: 0;
+}
+
+.term-label {
+  color: var(--color-ink-soft);
+  font-size: 12px;
+  font-weight: 600;
+  margin-bottom: 6px;
+}
+
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  align-items: center;
+}
+
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  border-radius: 7px;
+  font-size: 12px;
+  font-weight: 600;
+  padding: 3.5px 9px;
+}
+
+.chip.good {
+  background: var(--color-success-soft);
+  color: var(--color-success-deep);
+}
+
+.chip.warn {
+  background: var(--color-attention-soft);
+  /* attention-deep since Stage A3/A4: the base attention tone fails 4.5:1
+     on the soft tint (docs/PROMOTION.md contrast gate). */
+  color: var(--color-attention-deep);
+}
+
+.chip.flat {
+  background: var(--color-surface-2);
+  color: var(--color-ink-2);
+}
+
+/* ========================= micro-timeline ========================== */
+
+.tl {
+  margin-top: 4px;
+}
+
+.tl-track {
+  position: relative;
+  height: 6px;
+  border-radius: 999px;
+  background: var(--color-surface-2);
+  border: 1px solid var(--color-line-soft);
+}
+
+.tl-fill {
+  position: absolute;
+  inset: 0 auto 0 0;
+  border-radius: 999px;
+  background: linear-gradient(90deg, var(--color-deep-ocean), var(--color-midnight-slate));
+  transition: width 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.tl-dot {
+  position: absolute;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  width: 11px;
+  height: 11px;
+  border-radius: 50%;
+  background: var(--color-surface);
+  border: 2.5px solid var(--color-midnight-slate);
+}
+
+.tl-caption {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 7px;
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  color: var(--color-ink-soft);
+}
+
+/* Data-driven addition: honest empty state for offers that state no close
+   term (the exploration assumes every offer has one; real data does not). */
+.tl.not-stated .tl-track {
+  background: transparent;
+  border-style: dashed;
+}
+
+.tl.not-stated .tl-caption {
+  justify-content: flex-start;
+}
+
+/* ========================= comparison grid ========================= */
+
+.gridcard {
+  margin-top: 30px;
+  background: var(--color-surface);
+  border: 1px solid var(--color-line-soft);
+  border-radius: var(--radius-card);
+  box-shadow: var(--shadow-card);
+  overflow: hidden;
+}
+
+.gridcard-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 18px 22px 14px;
+  flex-wrap: wrap;
+}
+
+.gridcard-head h2 {
+  margin: 0;
+  font-family: var(--font-display);
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  font-size: 19px;
+}
+
+.gridcard-head .hint {
+  color: var(--color-ink-soft);
+  font-size: 12.5px;
+}
+
+.cmp-scroll {
+  overflow-x: auto;
+}
+
+.cmp {
+  min-width: 720px;
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.cmp th,
+.cmp td {
+  text-align: left;
+  padding: 14px 22px;
+  vertical-align: top;
+}
+
+.cmp thead th {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--color-ink-soft);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  border-bottom: 1px solid var(--color-line-soft);
+}
+
+.cmp thead th .buyer {
+  display: block;
+  font-family: var(--font-sans);
+  font-size: 14px;
+  color: var(--color-ink);
+  letter-spacing: 0;
+  text-transform: none;
+  margin-top: 2px;
+}
+
+.cmp tbody tr:nth-child(odd) {
+  background: var(--color-surface-2);
+}
+
+.cmp tbody tr {
+  transition: box-shadow 0.15s ease;
+}
+
+.cmp tbody tr:hover {
+  box-shadow: inset 0 0 0 2px var(--color-ocean-200);
+}
+
+.cmp .dim {
+  font-weight: 600;
+  color: var(--color-ink-2);
+  font-size: 13px;
+  white-space: nowrap;
+}
+
+.cmp .val {
+  font-size: 13.5px;
+  color: var(--color-ink);
+}
+
+.cmp .val .mono-val {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  font-weight: 600;
+}
+
+.cmp .val.lead .mono-val {
+  color: var(--color-success-deep);
+}
+
+.leadmark {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  color: var(--color-success-deep);
+  font-size: 11px;
+  font-weight: 700;
+  margin-left: 6px;
+}
+
+.cmp .src {
+  margin-top: 5px;
+}
+
+/* ======================== sticky action bar ======================== */
+
+.actionbar-slot {
+  position: sticky;
+  bottom: 18px;
+  margin-top: 34px;
+  z-index: 40;
+}
+
+.actionbar {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  flex-wrap: wrap;
+  background: var(--color-surface);
+  border: 1px solid var(--color-line-soft);
+  border-radius: 14px;
+  box-shadow: var(--shadow-pop);
+  padding: 13px 18px;
+}
+
+.actionbar .msg {
+  color: var(--color-ink-2);
+  font-size: 13px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.actionbar .msg svg {
+  color: var(--color-success);
+  flex: none;
+}
+
+.actionbar .grow {
+  flex: 1;
+}
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  justify-content: center;
+  border-radius: var(--radius-control);
+  font-size: 13.5px;
+  font-weight: 600;
+  padding: 10px 18px;
+  transition: background 0.15s ease, border-color 0.15s ease, transform 0.1s ease;
+}
+
+.btn:active {
+  transform: scale(0.98);
+}
+
+.btn:disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
+  transform: none;
+}
+
+.btn-primary {
+  background: var(--color-deep-ocean);
+  border: 1px solid var(--color-deep-ocean);
+  color: #ffffff;
+}
+
+.btn-primary:hover:not(:disabled) {
+  background: var(--color-midnight-slate);
+  border-color: var(--color-midnight-slate);
+}
+
+.btn-outline {
+  background: var(--color-surface);
+  border: 1px solid var(--color-line);
+  color: var(--color-ink-2);
+}
+
+.btn-outline:hover:not(:disabled) {
+  border-color: var(--color-deep-ocean);
+  color: var(--color-deep-ocean);
+  background: var(--color-ocean-50);
+}
+
+.btn-ghost {
+  background: transparent;
+  border: 1px solid transparent;
+  /* ink-3, not ink-soft: ghost text at 4.39:1 fails the gate on paper
+     (docs/PROMOTION.md §A4); ink-3 passes at 8.4:1 and stays quiet. */
+  color: var(--color-ink-3);
+}
+
+.btn-ghost:hover:not(:disabled) {
+  color: var(--color-ink);
+  background: var(--color-surface-2);
+}
+
+/* =========================== lab chrome ============================ */
+/* Lab-only affordances (gallery sections, palette toggle, dataset note).
+   These never promote — delete with the lab. */
+
+.lab-section {
+  margin-top: 44px;
+}
+
+.lab-section > h2 {
+  font-family: var(--font-display);
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  font-size: 23px;
+  margin: 0 0 4px;
+}
+
+.lab-section > .lab-note {
+  color: var(--color-ink-soft);
+  font-size: 12.5px;
+  margin: 0 0 16px;
+}
+
+.lab-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+  margin-top: 10px;
+}
+
+.lab-swatches {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  gap: 10px;
+}
+
+.lab-swatch {
+  border: 1px solid var(--color-line-soft);
+  border-radius: var(--radius-control);
+  overflow: hidden;
+  background: var(--color-surface);
+}
+
+.lab-swatch .well {
+  height: 44px;
+}
+
+.lab-swatch .meta {
+  padding: 6px 9px;
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  color: var(--color-ink-2);
+}
+
+.lab-toggle {
+  position: fixed;
+  right: 18px;
+  top: 18px;
+  z-index: 60;
+  display: flex;
+  gap: 2px;
+  background: var(--color-surface);
+  border: 1px solid var(--color-line-soft);
+  border-radius: 999px;
+  padding: 3px;
+  box-shadow: var(--shadow-card);
+}
+
+.lab-toggle a {
+  text-decoration: none;
+  color: var(--color-ink-soft);
+  font-size: 12px;
+  font-weight: 600;
+  padding: 5px 12px;
+  border-radius: 999px;
+}
+
+.lab-toggle a[aria-current="true"] {
+  background: var(--color-deep-ocean);
+  color: #ffffff;
+}
+
+.lab-list {
+  margin: 0;
+  padding-left: 18px;
+  color: var(--color-ink-2);
+  font-size: 13.5px;
+  line-height: 1.7;
+}
+
+.lab-list b {
+  color: var(--color-ink);
+}
+
+
+/* ===================== thank-you (Stage A3) ======================== */
+/* Ported from the exploration's screen 3: drawn check + preview pass. */
+
+.ty-check {
+  width: 84px;
+  height: 84px;
+  margin: 0 auto;
+  display: block;
+}
+
+.ty-check .ring {
+  fill: none;
+  stroke: var(--color-success);
+  stroke-width: 4;
+  stroke-linecap: round;
+  stroke-dasharray: 264;
+  stroke-dashoffset: 264;
+  animation: draw 0.7s cubic-bezier(0.65, 0, 0.35, 1) 0.15s forwards;
+}
+
+.ty-check .mark {
+  fill: none;
+  stroke: var(--color-success);
+  stroke-width: 6;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-dasharray: 60;
+  stroke-dashoffset: 60;
+  animation: draw 0.4s cubic-bezier(0.65, 0, 0.35, 1) 0.75s forwards;
+}
+
+@keyframes draw {
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ty-check .ring,
+  .ty-check .mark {
+    stroke-dashoffset: 0;
+  }
+}
+
+.pass-scene {
+  perspective: 900px;
+  margin-top: 30px;
+  display: flex;
+  justify-content: center;
+}
+
+.pass {
+  width: 372px;
+  max-width: 100%;
+  border-radius: 18px;
+  text-align: left;
+  color: #f0f6ff;
+  background:
+    radial-gradient(120% 90% at 85% -10%, rgba(255, 255, 255, 0.16), transparent 55%),
+    linear-gradient(135deg, var(--color-midnight-slate) 0%, var(--color-deep-ocean) 100%);
+  box-shadow: var(--shadow-pop);
+  padding: 24px 26px 22px;
+  position: relative;
+  overflow: hidden;
+  transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.pass:hover {
+  transform: rotateX(4deg) rotateY(-5deg) translateY(-3px);
+}
+
+.pass::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: repeating-linear-gradient(-45deg, rgba(255, 255, 255, 0.045) 0 2px, transparent 2px 9px);
+}
+
+.pass-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.pass-brand {
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: rgba(240, 246, 255, 0.92);
+}
+
+
+.pass-no {
+  font-family: var(--font-mono);
+  font-size: 42px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  margin-top: 26px;
+  line-height: 1;
+}
+
+.pass-no small {
+  font-size: 15px;
+  font-weight: 500;
+  opacity: 0.7;
+  letter-spacing: 0.1em;
+  vertical-align: 14px;
+  margin-right: 6px;
+}
+
+.pass-role {
+  margin-top: 6px;
+  font-size: 13px;
+  color: rgba(240, 246, 255, 0.85);
+}
+
+.pass-rule {
+  margin: 20px 0 14px;
+  border: 0;
+  border-top: 1px dashed rgba(240, 246, 255, 0.35);
+}
+
+.pass-meta {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px 16px;
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  letter-spacing: 0.06em;
+}
+
+.pass-meta .k {
+  color: rgba(240, 246, 255, 0.55);
+  text-transform: uppercase;
+}
+
+.pass-meta .v {
+  color: #ffffff;
+  margin-top: 2px;
+}

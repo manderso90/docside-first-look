@@ -31,11 +31,13 @@
   "include": [
     "**/*.ts",
     "**/*.tsx",
+    ".next-e2e-containment/types/**/*.ts",
     ".next-e2e-desktop/types/**/*.ts",
+    ".next-e2e-handoff/types/**/*.ts",
     ".next-e2e-mobile/types/**/*.ts",
+    ".next-prod-shots/types/**/*.ts",
     ".next/types/**/*.ts",
-    "next-env.d.ts",
-    ".next-e2e-handoff/types/**/*.ts"
+    "next-env.d.ts"
   ],
   "exclude": [
     "node_modules",

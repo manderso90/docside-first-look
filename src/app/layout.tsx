@@ -10,7 +10,9 @@ const plexSans = IBM_Plex_Sans({
 
 const plexMono = IBM_Plex_Mono({
   subsets: ["latin"],
-  weight: ["400", "500"],
+  // 600/700 added at UI-vocabulary promotion (docs/PROMOTION.md §A1) — offer
+  // prices and table values render mono-bold; replaces the lab's extra load.
+  weight: ["400", "500", "600", "700"],
   variable: "--font-plex-mono",
 });
 

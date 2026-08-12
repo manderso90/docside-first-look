@@ -1,4 +1,9 @@
 @import "tailwindcss";
+/* UI vocabulary (promoted from the /ui-lab fence at Stage A2, docs/PROMOTION.md).
+   Inlined via @import — a SECOND root-layout CSS import corrupts dev client
+   chunks ("__webpack_require__.n is not a function" on client navigation),
+   the same webpack bug family documented in src/app/ui-lab/lab-gate.tsx. */
+@import "./first-look-ui.css";
 
 /*
  * Design tokens — canonical source: design-reference/comparison-view-mockup-v3.html
@@ -24,14 +29,23 @@
   --color-ink: #161616;
   --color-ink-2: #2d2d2b;
   --color-ink-3: #434341;
+  /* softer muted-ink step from the decided UI vocabulary (docs/PROMOTION.md
+     §A1) — a NEW token; --color-ink-3 is left untouched mid-cohort. */
+  --color-ink-soft: #6d6d69;
   --color-line: #c7c7c7;
   --color-line-2: #e0dfd8;
+  /* softer hairline from the decided UI vocabulary (fence "--line"; note the
+     register's crossed naming — fence --line-2 equals --color-line). */
+  --color-line-soft: #dcdbd4;
 
   /* state families (v3; amber/violet/success tints provisional per palette board) */
   --color-verified: #115073;
   --color-verified-soft: #e5f1f7;
   --color-verified-line: #aed3ea;
   --color-attention: #a0701a;
+  /* text-on-soft step added at Stage A3/A4 (docs/PROMOTION.md): #a0701a on
+     the soft tint is 3.83:1; this passes at 5.33:1 and stays warm. */
+  --color-attention-deep: #835b14;
   --color-attention-soft: #f8f0dd;
   --color-attention-line: #e7d2a4;
   --color-corrected: #54459b;
@@ -40,7 +54,11 @@
   --color-muted: #868682;
   --color-muted-soft: #ecece8;
   --color-muted-line: #cac9c2;
-  --color-success-deep: #3f7a2e;
+  /* success ramp realigned at promotion (docs/PROMOTION.md §A1): the old
+     --color-success-deep value is semantically the base step; the true deep
+     step (#35682c) comes from the decided UI vocabulary. */
+  --color-success: #3f7a2e;
+  --color-success-deep: #35682c;
   --color-success-soft: #e8f4e2;
   --color-success-line: #b7dca9;
   --color-conflict: #863c28;
@@ -57,6 +75,8 @@
   --radius-control: 5.5px;
   --shadow-card:
     0 1px 2px rgba(14, 39, 53, 0.05), 0 4px 16px rgba(14, 39, 53, 0.06);
+  --shadow-pop:
+    0 3px 8px rgba(14, 39, 53, 0.08), 0 14px 36px rgba(14, 39, 53, 0.14);
 
   /* motion (v3 ease; honor prefers-reduced-motion at usage sites) */
   --ease-calm: cubic-bezier(0.16, 1, 0.3, 1);
@@ -66,8 +86,10 @@ body {
   background: var(--color-paper);
   color: var(--color-ink);
   -webkit-font-smoothing: antialiased;
-  font-size: 14px;
-  line-height: 1.45;
+  /* 14.5/1.5 since Stage A3 (docs/PROMOTION.md) — the vocabulary's reading
+     register; was 14/1.45. */
+  font-size: 14.5px;
+  line-height: 1.5;
 }
 
 :focus-visible {
