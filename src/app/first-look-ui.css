@@ -762,15 +762,6 @@
   color: rgba(240, 246, 255, 0.92);
 }
 
-.pass-logo {
-  width: 26px;
-  height: 26px;
-  border-radius: 8px;
-  background: rgba(255, 255, 255, 0.16);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
 
 .pass-no {
   font-family: var(--font-mono);

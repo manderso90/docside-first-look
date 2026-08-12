@@ -60,21 +60,6 @@ export default async function ThankYouPage() {
           >
             <div className="pass-top">
               <span className="pass-brand">Docside · Founding Agent Preview</span>
-              <span className="pass-logo" aria-hidden="true">
-                <svg
-                  width="14"
-                  height="14"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="#fff"
-                  strokeWidth="2.4"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                >
-                  <path d="m3 11 9-8 9 8" />
-                  <path d="M5 9.5V21h14V9.5" />
-                </svg>
-              </span>
             </div>
             <div className="pass-no">
               <small>№</small>
