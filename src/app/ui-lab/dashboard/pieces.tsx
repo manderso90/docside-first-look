@@ -7,7 +7,6 @@ import { MicroTimeline } from "@/components/first-look-ui/micro-timeline";
 import { IconCircleCheck, IconCopy, IconShare, IconUp } from "@/components/first-look-ui/icons";
 import { RPA_REF } from "@/lib/first-look-ui/rpa-map";
 import { closeLabel, usd, type DashboardData, type OfferView } from "@/lib/first-look-ui/types";
-import type { FlPalette } from "@/components/first-look-ui/surface";
 
 /**
  * Offer-dashboard screen pieces (plan: ui-lab Phase 4). Screen-level
@@ -229,24 +228,18 @@ export function ActionBar({ message }: { message: string }) {
 }
 
 /** Lab-only dataset switch (synthetic scenario ↔ fixture stress mode). */
-export function DatasetSwitch({
-  palette,
-  fixturesActive,
-}: {
-  palette: FlPalette;
-  fixturesActive: boolean;
-}) {
+export function DatasetSwitch({ fixturesActive }: { fixturesActive: boolean }) {
   return (
     <div className="lab-row">
       <a
         className={`btn ${fixturesActive ? "btn-ghost" : "btn-outline"}`}
-        href={`?palette=${palette}`}
+        href="?"
       >
         Synthetic scenario
       </a>
       <a
         className={`btn ${fixturesActive ? "btn-outline" : "btn-ghost"}`}
-        href={`?palette=${palette}&data=fixtures`}
+        href="?data=fixtures"
       >
         Fixture stress mode (local only)
       </a>

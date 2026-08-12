@@ -23,6 +23,13 @@ export function labOpen(): boolean {
  * routes ("__webpack_require__.n is not a function" on client navigation).
  * Found while validating containment; the disjointness rule is enforced by
  * scripts/ui-lab-fence-audit.mjs.
+ *
+ * Even with full disjointness a TIMING-DEPENDENT residue of the same bug
+ * remains (shared react/next runtime chunks): after visiting /ui-lab in a
+ * dev session, the next client-side navigation among participant screens can
+ * transiently show "Application error"; a reload fixes it. Dev-only —
+ * production builds are unaffected (e2e + prod-gate checks prove it). The
+ * containment capture therefore visits /ui-lab last.
  */
 export function LabClosed() {
   if (process.env.NODE_ENV !== "development") notFound();

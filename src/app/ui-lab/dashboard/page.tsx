@@ -1,5 +1,4 @@
-import { FlSurface, resolvePalette } from "@/components/first-look-ui/surface";
-import { PaletteToggle } from "@/components/first-look-ui/palette-toggle";
+import { FlSurface } from "@/components/first-look-ui/surface";
 import { IconCheck } from "@/components/first-look-ui/icons";
 import { OAKVIEW } from "@/lib/first-look-ui/scenario-oakview";
 import { loadFixtureOffers } from "@/lib/first-look-ui/fixtures";
@@ -7,9 +6,9 @@ import { labOpen, LabClosed } from "../lab-gate";
 import { ActionBar, ComparisonTable, DatasetSwitch, OfferHeroCard } from "./pieces";
 
 /**
- * The offer dashboard — the ONE screen this round builds (plan: ui-lab
- * Phase 4). Exists to answer two questions by looking at a real screen:
- * is the component vocabulary right, and which palette wins.
+ * The offer dashboard — the ONE screen this round built (plan: ui-lab
+ * Phase 4), now rendered in the chosen Docside token set (founder decision
+ * 2026-08-11; the proposed palette and toggle are deleted).
  *
  * Datasets (review adjustment 1):
  *  - default: synthetic competing offers on 1248 Oakview Drive — the
@@ -24,7 +23,6 @@ export default async function DashboardPage({
 }) {
   if (!labOpen()) return <LabClosed />;
   const sp = await searchParams;
-  const palette = resolvePalette(sp.palette);
   const wantFixtures = sp.data === "fixtures";
   const fixtures = wantFixtures ? loadFixtureOffers() : null;
   const data = fixtures ?? OAKVIEW;
@@ -34,8 +32,7 @@ export default async function DashboardPage({
   );
 
   return (
-    <FlSurface palette={palette}>
-      <PaletteToggle current={palette} extraQuery={wantFixtures ? { data: "fixtures" } : {}} />
+    <FlSurface>
       <div className="wrap">
         <div className="preview-eyebrow">
           <span className="caps">UI lab · offer dashboard</span>
@@ -86,7 +83,7 @@ export default async function DashboardPage({
 
         <ComparisonTable data={data} />
 
-        <DatasetSwitch palette={palette} fixturesActive={Boolean(fixtures)} />
+        <DatasetSwitch fixturesActive={Boolean(fixtures)} />
 
         <ActionBar
           message={`Comparison ready — ${data.offers.length} offers, every term carries its § reference`}

@@ -2,9 +2,9 @@
 // review adjustments 4–6).
 //
 // Boots a dev server WITH the lab open and captures the offer dashboard in
-// both palettes × both datasets × desktop/mobile, plus the gallery — the
-// side-by-side set the palette decision is made from. Also runs two
-// acceptance checks per dashboard variant:
+// both datasets × desktop/mobile, plus the gallery (single palette since the
+// 2026-08-11 founder decision: Docside tokens). Also runs two acceptance
+// checks per dashboard variant:
 //   - keyboard tab-walk: every SourceChip and action-bar control is reachable
 //     and the focused element sits inside [data-fl],
 //   - sticky action bar: the comparison table can scroll horizontally at
@@ -125,17 +125,16 @@ try {
   ]) {
     const context = await browser.newContext({ viewport, reducedMotion: "reduce", deviceScaleFactor: 1 });
     const page = await context.newPage();
-    for (const palette of ["proposed", "brand"]) {
-      await page.goto(`${BASE}/ui-lab?palette=${palette}`);
-      await settleAndShoot(page, `${tag}-gallery-${palette}`);
-      for (const data of ["scenario", "fixtures"]) {
-        const q = data === "fixtures" ? "&data=fixtures" : "";
-        const name = `${tag}-dashboard-${palette}-${data}`;
-        await page.goto(`${BASE}/ui-lab/dashboard?palette=${palette}${q}`);
-        await settleAndShoot(page, name);
-        if (tag === "desktop" && data === "scenario") await tabWalk(page, name);
-        if (tag === "mobile") await stickyBarCheck(page, name);
-      }
+    // Single palette since the founder decision (2026-08-11): Docside tokens.
+    await page.goto(`${BASE}/ui-lab`);
+    await settleAndShoot(page, `${tag}-gallery`);
+    for (const data of ["scenario", "fixtures"]) {
+      const q = data === "fixtures" ? "?data=fixtures" : "";
+      const name = `${tag}-dashboard-${data}`;
+      await page.goto(`${BASE}/ui-lab/dashboard${q}`);
+      await settleAndShoot(page, name);
+      if (tag === "desktop" && data === "scenario") await tabWalk(page, name);
+      if (tag === "mobile") await stickyBarCheck(page, name);
     }
     await context.close();
   }

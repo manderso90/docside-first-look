@@ -1,5 +1,4 @@
-import { FlSurface, resolvePalette } from "@/components/first-look-ui/surface";
-import { PaletteToggle } from "@/components/first-look-ui/palette-toggle";
+import { FlSurface } from "@/components/first-look-ui/surface";
 import { SourceChip } from "@/components/first-look-ui/source-chip";
 import { Chip } from "@/components/first-look-ui/chip";
 import { TierBadge } from "@/components/first-look-ui/tier-badge";
@@ -7,12 +6,16 @@ import { FlButton } from "@/components/first-look-ui/button";
 import { Card, CardHead, CardBody } from "@/components/first-look-ui/card";
 import { MicroTimeline } from "@/components/first-look-ui/micro-timeline";
 import { labOpen, LabClosed } from "./lab-gate";
+import { LabA } from "./lab-link";
 
 /**
  * The primitives gallery (plan: ui-lab Phase 3): every fence primitive in
- * isolation under both palettes, plus the palette-decision rubric and the
- * promotion decision checkpoint (review adjustments 3 & 4). This page IS
- * the decision-session agenda — it never promotes.
+ * isolation, plus the promotion decision checkpoint. This page never
+ * promotes.
+ *
+ * PALETTE DECISION (founder, 2026-08-11): the Docside token set won; the
+ * proposed set, the ?palette= switch, and the PaletteToggle are deleted.
+ * Remaining checkpoint steps below reflect that.
  */
 
 const TOKEN_NAMES = [
@@ -22,63 +25,43 @@ const TOKEN_NAMES = [
   "attention", "attention-soft", "attention-line",
 ];
 
-const RUBRIC = [
-  ["Readability", "serif display vs Inter bold; 14.5px body; mono numerals at 34px"],
-  ["Density", "does the card grid + table hold four terms without crowding?"],
-  ["Trustworthiness", "does the vocabulary read calm and declarative, or salesy?"],
-  ["Agent/seller fit", "would an agent show this screen to a seller as-is?"],
-  ["Mobile table behavior", "880px card collapse; 720px table scroll with the sticky bar present"],
-  ["Docside-app compatibility", "the main app is DM Sans + shadcn vars — which set promotes cheaper?"],
-] as const;
+const CHECKPOINT: ReadonlyArray<{ step: string; state: "done" | "open" }> = [
+  { step: "Choose the palette — DONE 2026-08-11: Docside tokens.", state: "done" },
+  { step: "Delete the losing palette and the toggle — DONE (grep data-palette|palette-toggle → empty).", state: "done" },
+  { step: "Choose where components promote: First Look shell, main Docside app, or both.", state: "open" },
+  { step: "Delete or archive the lab-only data loading (fixtures.ts stress mode).", state: "open" },
+  { step: "Write the promotion/migration plan BEFORE touching any production screen.", state: "open" },
+];
 
-const CHECKPOINT = [
-  "Choose the palette (this rubric, both dashboard variants, contrast report).",
-  "Choose where components promote: First Look shell, main Docside app, or both.",
-  "Delete the losing palette and the toggle (grep data-palette|palette-toggle → empty).",
-  "Delete or archive the lab-only data loading (fixtures.ts stress mode).",
-  "Write the promotion/migration plan BEFORE touching any production screen.",
-] as const;
-
-export default async function UiLabIndex({
-  searchParams,
-}: {
-  searchParams: Promise<Record<string, string | string[] | undefined>>;
-}) {
+export default function UiLabIndex() {
   if (!labOpen()) return <LabClosed />;
-  const palette = resolvePalette((await searchParams).palette);
 
   return (
-    <FlSurface palette={palette}>
-      <PaletteToggle current={palette} />
+    <FlSurface>
       <div className="wrap">
         <div className="preview-eyebrow">
           <span className="caps">First Look · UI lab</span>
         </div>
         <h1 className="display">Component vocabulary</h1>
         <p className="subline">
-          The exploration&rsquo;s primitives, ported verbatim and rendered under
-          both candidate token sets. Dev-only; gated by FL_UI_LAB. The decision
-          screen is the{" "}
-          <a href={`/ui-lab/dashboard?palette=${palette}`}>offer dashboard</a>.
+          The exploration&rsquo;s primitives under the chosen Docside token
+          set. Dev-only; gated by FL_UI_LAB. The working screen is the{" "}
+          <LabA href="/ui-lab/dashboard">offer dashboard</LabA>.
         </p>
         <div className="lab-row">
-          <a className="btn btn-primary" href={`/ui-lab/dashboard?palette=${palette}`}>
+          <LabA className="btn btn-primary" href="/ui-lab/dashboard">
             Open the offer dashboard
-          </a>
-          <a
-            className="btn btn-outline"
-            href={`/ui-lab/dashboard?palette=${palette}&data=fixtures`}
-          >
+          </LabA>
+          <LabA className="btn btn-outline" href="/ui-lab/dashboard?data=fixtures">
             Dashboard · fixture stress mode
-          </a>
+          </LabA>
         </div>
 
         <section className="lab-section">
           <h2>Tokens</h2>
           <p className="lab-note">
-            Both sets defined on [data-fl]; this strip renders whichever
-            data-palette selects. The duplication register lives at the top of
-            first-look-ui.css.
+            The Docside set, defined on [data-fl]. The duplication register
+            lives at the top of first-look-ui.css.
           </p>
           <div className="lab-swatches">
             {TOKEN_NAMES.map((name) => (
@@ -94,7 +77,8 @@ export default async function UiLabIndex({
           <h2>SourceChip</h2>
           <p className="lab-note">
             The signature element: summary → extracted value → source language.
-            Honestly inert in the lab (aria-disabled; the source view is app-side
+            1.5px --primary-line border (founder request 2026-08-11). Honestly
+            inert in the lab (aria-disabled; the source view is app-side
             product work).
           </p>
           <div className="lab-row">
@@ -181,27 +165,17 @@ export default async function UiLabIndex({
         </section>
 
         <section className="lab-section">
-          <h2>Palette decision rubric</h2>
-          <p className="lab-note">Judge on the dashboard, both palettes, both datasets.</p>
-          <ul className="lab-list">
-            {RUBRIC.map(([name, note]) => (
-              <li key={name}>
-                <b>{name}</b> — {note}
-              </li>
-            ))}
-          </ul>
-        </section>
-
-        <section className="lab-section">
           <h2>Promotion decision checkpoint</h2>
           <p className="lab-note">
-            Runs AFTER the palette decision, before any production screen
-            changes (review adjustment 3). The lab does not quietly become the
-            product.
+            The lab does not quietly become the product: the remaining steps
+            run before any production screen changes.
           </p>
           <ol className="lab-list">
-            {CHECKPOINT.map((step) => (
-              <li key={step}>{step}</li>
+            {CHECKPOINT.map(({ step, state }) => (
+              <li key={step}>
+                {state === "done" ? <b>✓ </b> : null}
+                {step}
+              </li>
             ))}
           </ol>
         </section>

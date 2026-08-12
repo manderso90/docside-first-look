@@ -124,9 +124,6 @@ async function walk(viewport, tag) {
     await shot(page, "01-link-inactive", tag);
     await page.goto(`${BASE}/definitely-not-a-route-xyz`);
     await shot(page, "02-not-found", tag);
-    // Gate: while FL_UI_LAB is unset this must be pixel-identical to 02.
-    await page.goto(`${BASE}/ui-lab`);
-    await shot(page, "03-ui-lab-gate", tag);
 
     // Journey (same interactions as tests/e2e/journey.spec.ts)
     await page.goto(`${BASE}/dev-preview-morris`);
@@ -184,6 +181,15 @@ async function walk(viewport, tag) {
 
     await page.waitForURL(/\/thank-you$/);
     await shot(page, "18-thank-you", tag);
+
+    // Gate frame LAST, deliberately: compiling the /ui-lab entry into a dev
+    // session can transiently corrupt client chunks for routes visited
+    // afterwards (timing-dependent, self-heals on reload, dev-only — the
+    // shared react/next runtime chunks, not something app code can remove;
+    // see lab-gate.tsx). Capturing it after the journey keeps the
+    // participant frames deterministic while still proving the 404.
+    await page.goto(`${BASE}/ui-lab`);
+    await shot(page, "03-ui-lab-gate", tag);
 
     await browser.close();
   } finally {

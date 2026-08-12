@@ -38,9 +38,9 @@ function tokensFrom(selector) {
   return map;
 }
 
+// Single palette since the founder decision (2026-08-11): Docside tokens.
 const palettes = {
-  proposed: tokensFrom("[data-fl] {"),
-  brand: tokensFrom('[data-fl][data-palette="brand"]'),
+  brand: tokensFrom("[data-fl] {"),
 };
 
 function luminance(hex) {

@@ -8,8 +8,10 @@ export const metadata: Metadata = {
 
 /**
  * The First Look UI lab (plan: ui-lab) — a dev-only design-validation
- * surface for the exploration's component vocabulary and the two candidate
- * palettes. Not part of the participant flow; nothing links here.
+ * surface for the exploration's component vocabulary, rendered in the chosen
+ * Docside token set (founder decision 2026-08-11; the second candidate
+ * palette and its toggle are deleted). Not part of the participant flow;
+ * nothing links here.
  *
  * The FL_UI_LAB gate lives in each page via labOpen()/LabClosed
  * (lab-gate.tsx), NOT here — see lab-gate.tsx for the dev-mode
@@ -17,8 +19,7 @@ export const metadata: Metadata = {
  *
  * The fence stylesheet import is safe here: Next bundles it globally, but
  * every selector requires [data-fl] (see scripts/ui-lab-fence-audit.mjs).
- * The palette wrapper (FlSurface) is applied per page because layouts don't
- * receive searchParams and the palette rides ?palette=.
+ * The fence wrapper (FlSurface) is applied per page.
  */
 export default function UiLabLayout({
   children,
