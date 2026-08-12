@@ -18,6 +18,14 @@ exists precisely to learn before making that bet.
 
 ## Stage A — promote into the First Look shell (this repo)
 
+> **Execution status (2026-08-11):** A1 ✓ (`dca4804`) · A2 ✓ (`be8f489` —
+> includes the dev switch to Turbopack: the webpack dev server corrupts
+> client chunks probabilistically once the vocabulary stylesheet is global;
+> under Turbopack the containment capture is byte-identical to the webpack
+> baseline) · A3+A4 ✓ (`Stage A3` commit — all five gates green; review
+> package with the founder pending) · A5 not started (runs after the A3
+> review). **Nothing pushed/deployed — mid-cohort rule.**
+
 ### A1. Token merge into `src/app/globals.css` `@theme`
 
 The duplication register (header of `src/components/first-look-ui/first-look-ui.css`)
