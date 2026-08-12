@@ -15,13 +15,13 @@ import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { dirname, join } from "node:path";
 
+// Tokens moved to @theme at Stage A2 promotion (docs/PROMOTION.md).
 const CSS_PATH = join(
   dirname(fileURLToPath(import.meta.url)),
   "..",
   "src",
-  "components",
-  "first-look-ui",
-  "first-look-ui.css",
+  "app",
+  "globals.css",
 );
 const css = readFileSync(CSS_PATH, "utf8");
 
@@ -40,7 +40,7 @@ function tokensFrom(selector) {
 
 // Single palette since the founder decision (2026-08-11): Docside tokens.
 const palettes = {
-  brand: tokensFrom("[data-fl] {"),
+  brand: tokensFrom("@theme {"),
 };
 
 function luminance(hex) {
@@ -57,22 +57,22 @@ function ratio(fg, bg) {
 
 // [label, fg token, bg token] — bg "#ffffff"-style literals allowed.
 const PAIRS = [
-  ["chip.good", "--success-deep", "--success-soft"],
-  ["chip.warn", "--attention", "--attention-soft"],
-  ["chip.flat", "--ink-2", "--card-2"],
-  ["tierbadge.success", "--success-deep", "--success-soft"],
-  ["tierbadge.primary", "--primary", "--primary-soft"],
-  ["tierbadge.neutral", "--ink-2", "--card-2"],
-  ["srcchip", "--primary", "--primary-soft"],
-  ["srcchip:hover", "--primary", "--primary-line"],
-  ["btn-primary", "#ffffff", "--primary"],
-  ["btn-outline", "--ink-2", "--card"],
-  ["btn-ghost", "--ink-3", "--canvas"],
-  ["muted caption (--ink-3 on card)", "--ink-3", "--card"],
-  ["subline (--ink-2 on canvas)", "--ink-2", "--canvas"],
-  ["leadmark", "--success-deep", "--card"],
-  ["term value (--ink on card)", "--ink", "--card"],
-  ["zebra value (--ink on card-2)", "--ink", "--card-2"],
+  ["chip.good", "--color-success-deep", "--color-success-soft"],
+  ["chip.warn", "--color-attention", "--color-attention-soft"],
+  ["chip.flat", "--color-ink-2", "--color-surface-2"],
+  ["tierbadge.success", "--color-success-deep", "--color-success-soft"],
+  ["tierbadge.primary", "--color-deep-ocean", "--color-ocean-50"],
+  ["tierbadge.neutral", "--color-ink-2", "--color-surface-2"],
+  ["srcchip", "--color-deep-ocean", "--color-ocean-50"],
+  ["srcchip:hover", "--color-deep-ocean", "--color-ocean-200"],
+  ["btn-primary", "#ffffff", "--color-deep-ocean"],
+  ["btn-outline", "--color-ink-2", "--color-surface"],
+  ["btn-ghost", "--color-ink-soft", "--color-paper"],
+  ["muted caption (--ink-3 on card)", "--color-ink-soft", "--color-surface"],
+  ["subline (--ink-2 on canvas)", "--color-ink-2", "--color-paper"],
+  ["leadmark", "--color-success-deep", "--color-surface"],
+  ["term value (--ink on card)", "--color-ink", "--color-surface"],
+  ["zebra value (--ink on card-2)", "--color-ink", "--color-surface-2"],
 ];
 
 let failures = 0;

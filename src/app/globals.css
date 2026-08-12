@@ -1,4 +1,9 @@
 @import "tailwindcss";
+/* UI vocabulary (promoted from the /ui-lab fence at Stage A2, docs/PROMOTION.md).
+   Inlined via @import — a SECOND root-layout CSS import corrupts dev client
+   chunks ("__webpack_require__.n is not a function" on client navigation),
+   the same webpack bug family documented in src/app/ui-lab/lab-gate.tsx. */
+@import "./first-look-ui.css";
 
 /*
  * Design tokens — canonical source: design-reference/comparison-view-mockup-v3.html

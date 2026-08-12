@@ -1,4 +1,3 @@
-import { FlSurface } from "@/components/first-look-ui/surface";
 import { IconCheck } from "@/components/first-look-ui/icons";
 import { OAKVIEW } from "@/lib/first-look-ui/scenario-oakview";
 import { loadFixtureOffers } from "@/lib/first-look-ui/fixtures";
@@ -32,7 +31,7 @@ export default async function DashboardPage({
   );
 
   return (
-    <FlSurface>
+    <main>
       <div className="wrap">
         <div className="preview-eyebrow">
           <span className="caps">UI lab · offer dashboard</span>
@@ -89,6 +88,6 @@ export default async function DashboardPage({
           message={`Comparison ready — ${data.offers.length} offers, every term carries its § reference`}
         />
       </div>
-    </FlSurface>
+    </main>
   );
 }

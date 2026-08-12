@@ -1,4 +1,4 @@
-import { FlSurface } from "@/components/first-look-ui/surface";
+import Link from "next/link";
 import { SourceChip } from "@/components/first-look-ui/source-chip";
 import { Chip } from "@/components/first-look-ui/chip";
 import { TierBadge } from "@/components/first-look-ui/tier-badge";
@@ -6,7 +6,6 @@ import { FlButton } from "@/components/first-look-ui/button";
 import { Card, CardHead, CardBody } from "@/components/first-look-ui/card";
 import { MicroTimeline } from "@/components/first-look-ui/micro-timeline";
 import { labOpen, LabClosed } from "./lab-gate";
-import { LabA } from "./lab-link";
 
 /**
  * The primitives gallery (plan: ui-lab Phase 3): every fence primitive in
@@ -19,16 +18,17 @@ import { LabA } from "./lab-link";
  */
 
 const TOKEN_NAMES = [
-  "canvas", "card", "card-2", "ink", "ink-2", "ink-3", "line", "line-2",
-  "primary", "primary-deep", "primary-soft", "primary-line",
-  "success", "success-deep", "success-soft", "success-line",
-  "attention", "attention-soft", "attention-line",
+  "color-paper", "color-surface", "color-surface-2", "color-ink", "color-ink-2",
+  "color-ink-soft", "color-line-soft", "color-line",
+  "color-deep-ocean", "color-midnight-slate", "color-ocean-50", "color-ocean-200",
+  "color-success", "color-success-deep", "color-success-soft", "color-success-line",
+  "color-attention", "color-attention-soft", "color-attention-line",
 ];
 
 const CHECKPOINT: ReadonlyArray<{ step: string; state: "done" | "open" }> = [
   { step: "Choose the palette — DONE 2026-08-11: Docside tokens.", state: "done" },
   { step: "Delete the losing palette and the toggle — DONE (grep data-palette|palette-toggle → empty).", state: "done" },
-  { step: "Choose where components promote — PROPOSED in docs/PROMOTION.md (shell first; app gated on a feedback round). Awaiting founder sign-off.", state: "open" },
+  { step: "Choose where components promote — DONE 2026-08-11: shell first (founder sign-off); app gated per docs/PROMOTION.md.", state: "done" },
   { step: "Delete or archive the lab-only data loading (fixtures.ts stress mode) — scheduled at Stage A end, see docs/PROMOTION.md §A5.", state: "open" },
   { step: "Write the promotion/migration plan — DONE 2026-08-11: docs/PROMOTION.md.", state: "done" },
 ];
@@ -37,7 +37,7 @@ export default function UiLabIndex() {
   if (!labOpen()) return <LabClosed />;
 
   return (
-    <FlSurface>
+    <main>
       <div className="wrap">
         <div className="preview-eyebrow">
           <span className="caps">First Look · UI lab</span>
@@ -46,22 +46,23 @@ export default function UiLabIndex() {
         <p className="subline">
           The exploration&rsquo;s primitives under the chosen Docside token
           set. Dev-only; gated by FL_UI_LAB. The working screen is the{" "}
-          <LabA href="/ui-lab/dashboard">offer dashboard</LabA>.
+          <Link href="/ui-lab/dashboard">offer dashboard</Link>.
         </p>
         <div className="lab-row">
-          <LabA className="btn btn-primary" href="/ui-lab/dashboard">
+          <Link className="btn btn-primary" href="/ui-lab/dashboard">
             Open the offer dashboard
-          </LabA>
-          <LabA className="btn btn-outline" href="/ui-lab/dashboard?data=fixtures">
+          </Link>
+          <Link className="btn btn-outline" href="/ui-lab/dashboard?data=fixtures">
             Dashboard · fixture stress mode
-          </LabA>
+          </Link>
         </div>
 
         <section className="lab-section">
           <h2>Tokens</h2>
           <p className="lab-note">
-            The Docside set, defined on [data-fl]. The duplication register
-            lives at the top of first-look-ui.css.
+            Promoted at Stage A2: tokens live in globals.css @theme; the
+            fence and its duplication register are collapsed (mapping in the
+            header of first-look-ui.css).
           </p>
           <div className="lab-swatches">
             {TOKEN_NAMES.map((name) => (
@@ -77,7 +78,7 @@ export default function UiLabIndex() {
           <h2>SourceChip</h2>
           <p className="lab-note">
             The signature element: summary → extracted value → source language.
-            1.5px --primary-line border (founder request 2026-08-11). Honestly
+            1.5px --color-ocean-200 border (founder request 2026-08-11). Honestly
             inert in the lab (aria-disabled; the source view is app-side
             product work).
           </p>
@@ -180,6 +181,6 @@ export default function UiLabIndex() {
           </ol>
         </section>
       </div>
-    </FlSurface>
+    </main>
   );
 }

@@ -1,5 +1,4 @@
 import type { Metadata } from "next";
-import "@/components/first-look-ui/first-look-ui.css";
 
 export const metadata: Metadata = {
   title: "First Look — UI lab",
@@ -17,9 +16,8 @@ export const metadata: Metadata = {
  * (lab-gate.tsx), NOT here — see lab-gate.tsx for the dev-mode
  * notFound-in-this-subtree hazard that forced that shape.
  *
- * The fence stylesheet import is safe here: Next bundles it globally, but
- * every selector requires [data-fl] (see scripts/ui-lab-fence-audit.mjs).
- * The fence wrapper (FlSurface) is applied per page.
+ * The vocabulary styles are global since Stage A2 (imported via globals.css)
+ * — this layout imports nothing.
  */
 export default function UiLabLayout({
   children,
