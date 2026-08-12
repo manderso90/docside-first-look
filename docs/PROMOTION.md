@@ -74,10 +74,22 @@ Order:
 **Timing rule:** never mid-cohort. Participants within a cohort must see an
 identical experience (comparability hard rule); ship between feedback rounds.
 
-**Verification per step:** build/tsc/lint/e2e green; a before/after capture
-with `scripts/ui-lab-containment.mjs`-style runs where the *diffs are the
-deliverable* (reviewed by Morris) rather than byte-equality; the 375px
-no-horizontal-scroll rule via the existing `checkpoint` helper.
+**Verification per step — e2e copy assertions are the behavior freeze, not
+the whole gate (founder adjustment 2026-08-11).** Each re-skinned screen
+passes ALL of:
+
+1. build/tsc/lint/e2e green (behavior + wording frozen);
+2. **targeted visual check** — before/after captures
+   (`scripts/ui-lab-containment.mjs`-style) where the *diffs are the
+   deliverable*, reviewed by Morris per screen;
+3. **mobile screenshots** at 375px, including the no-horizontal-scroll rule
+   (existing `checkpoint` helper) and sticky/fixed elements in-viewport;
+4. **keyboard traversal** — tab-walk reaches every interactive control on the
+   screen with a visible focus state (adapt the walk from
+   `scripts/ui-lab-shots.mjs`);
+5. **contrast verification** — `scripts/ui-lab-contrast-audit.mjs` extended
+   to the screen's actual fg/bg pairings; no pairing under 4.5:1 ships
+   without an explicit founder acceptance note.
 
 ### A4. Fixes folded into promotion (accepted findings, from the contrast audit)
 
@@ -104,9 +116,48 @@ no-horizontal-scroll rule via the existing `checkpoint` helper.
 
 ## Stage B — main docside app (gated; plan at sketch level by design)
 
-**Gate:** run only after ≥1 feedback round validates the vocabulary
-behaviorally. Then plan it properly in the docside repo — this section is the
-shape, not the plan.
+**Gate (concrete — founder adjustment 2026-08-11; not vibes):** Stage B opens
+only after one full feedback round, run on the Stage-A-skinned shell, meets
+pre-registered criteria on the four dimensions below. Thresholds are set and
+written down BEFORE the round starts (suggested defaults in parentheses;
+adjust when instrumenting, never after reading the data):
+
+1. **Comprehension** — first-impression + debrief Part 1: participants can
+   describe what Docside does without Morris explaining (default: ≥ 2/3 of
+   the cohort, judged blind against a pre-written rubric).
+2. **Verification behavior** — event data shows participants actually open
+   source language during missions (default: a majority of participants
+   record ≥ 1 source-open; the moment-to-protect is exercised, not just
+   present).
+3. **Friction attribution** — debrief Parts 3/5: no repeated
+   hesitation/confusion pattern that names the new vocabulary itself (chips,
+   references, comparison table) as the cause (default: < 2 participants).
+4. **Commitment** — debrief Part 7 answers no worse than the prior round
+   (default: share of "Yes, now / Yes, after improvements" does not drop).
+
+Task completion and drop-off (stage events) are the tiebreaker: any
+regression vs the prior cohort blocks Stage B regardless of the above.
+
+Then plan Stage B properly in the docside repo — this section is the shape,
+not the plan.
+
+**Prerequisite 0 — Paper White decision (before token mapping, not during
+implementation):** the canvas fork — `#e0dfd8` (Statement §15 Paper White,
+locked) vs `#ecece8` (v3 mockup / this repo) — is decided in the docside
+repo, per the inheritance rule and the §17 one-sentence test, as the FIRST
+Stage B act. No Stage B token mapping starts until this is resolved; deferred
+is fine, vague is not.
+
+**Prerequisite 1 — SourceChip technical spike (the real Stage B risk):** the
+visual fork is smaller than it looks; wiring SourceChip into the actual
+citation pipeline is product-critical and gets its own spike BEFORE the
+promotion is committed to. The spike proves, on one real offer in the app:
+chip bound to real citations (page/text/bbox via `citation-match.ts`), the
+click-through source view (summary → extracted value → original language —
+the moment to protect), and the honest states (null citation, low
+confidence — never a dead or lying chip). Output: a working end-to-end chip
+plus an estimate; if the spike surprises, Stage B replans before any
+comparison-surface work.
 
 - **Surfaces:** `comparison-view.tsx`, `tier-section.tsx`, `offer-card.tsx`,
   `cost-allocation-table.tsx`, `properties/[id]`, `offers/[id]`, the `(app)`
@@ -114,10 +165,8 @@ shape, not the plan.
 - **Regime collisions to resolve:** DM Sans (self-hosted) vs IBM Plex trio;
   shadcn's `:root` variable contract (note: `--primary #115073` already
   matches, `--radius 0.625rem` = 10px already matches, shadcn `--card` ≈
-  fence `--card` — the fork is smaller than it looks); **canvas fork
-  `#e0dfd8` (Statement §15 Paper White, locked) vs `#ecece8` (v3 mockup /
-  this repo)** — that conflict is decided in the docside repo per the
-  inheritance rule, surfaced explicitly (§17 one-sentence test), never here.
+  fence `--card` — the fork is smaller than it looks); the canvas fork is
+  Prerequisite 0 above.
 - **Method:** reuse the proven fence pattern — scope the new tokens/styles to
   the comparison surface with a wrapper attribute first, prove containment
   with a capture harness, then flip app-wide and collapse the fence. Wire
