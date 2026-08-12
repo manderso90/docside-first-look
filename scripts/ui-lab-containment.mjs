@@ -51,7 +51,6 @@ const SERVER_ENV = {
   APP_HANDOFF_URL: "",
   // The point of the exercise: existing screens as agents see them — gate closed.
   FL_UI_LAB: "",
-  DOCSIDE_FIXTURES_DIR: "",
 };
 
 function startServer() {

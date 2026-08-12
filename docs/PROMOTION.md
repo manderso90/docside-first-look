@@ -23,8 +23,13 @@ exists precisely to learn before making that bet.
 > client chunks probabilistically once the vocabulary stylesheet is global;
 > under Turbopack the containment capture is byte-identical to the webpack
 > baseline) · A3+A4 ✓ (`Stage A3` commit — all five gates green; review
-> package with the founder pending) · A5 not started (runs after the A3
-> review). **Nothing pushed/deployed — mid-cohort rule.**
+> package with the founder pending) · A3 review ✓ (founder approved the
+> visual direction 2026-08-12; next-step buttons flattened to equal weight,
+> home glyph removed from the pass, prod-mode capture byte-identical to dev)
+> · A5 ✓ 2026-08-12 (fixtures.ts, /ui-lab/dashboard, ui-lab-shots.mjs and
+> the DOCSIDE_FIXTURES_DIR entry deleted; gated gallery kept). **Nothing
+> pushed/deployed — mid-cohort rule; all of Stage A sits on local branch
+> `stage-a-ui-promotion`, main reset to origin/main.**
 
 ### A1. Token merge into `src/app/globals.css` `@theme`
 

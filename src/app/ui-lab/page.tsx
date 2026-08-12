@@ -1,4 +1,3 @@
-import Link from "next/link";
 import { SourceChip } from "@/components/first-look-ui/source-chip";
 import { Chip } from "@/components/first-look-ui/chip";
 import { TierBadge } from "@/components/first-look-ui/tier-badge";
@@ -29,7 +28,7 @@ const CHECKPOINT: ReadonlyArray<{ step: string; state: "done" | "open" }> = [
   { step: "Choose the palette — DONE 2026-08-11: Docside tokens.", state: "done" },
   { step: "Delete the losing palette and the toggle — DONE (grep data-palette|palette-toggle → empty).", state: "done" },
   { step: "Choose where components promote — DONE 2026-08-11: shell first (founder sign-off); app gated per docs/PROMOTION.md.", state: "done" },
-  { step: "Delete or archive the lab-only data loading (fixtures.ts stress mode) — scheduled at Stage A end, see docs/PROMOTION.md §A5.", state: "open" },
+  { step: "Delete or archive the lab-only data loading (fixtures.ts stress mode) — DONE 2026-08-12 (A5): fixtures.ts, the dashboard mock, and DOCSIDE_FIXTURES_DIR are gone.", state: "done" },
   { step: "Write the promotion/migration plan — DONE 2026-08-11: docs/PROMOTION.md.", state: "done" },
 ];
 
@@ -45,17 +44,10 @@ export default function UiLabIndex() {
         <h1 className="display">Component vocabulary</h1>
         <p className="subline">
           The exploration&rsquo;s primitives under the chosen Docside token
-          set. Dev-only; gated by FL_UI_LAB. The working screen is the{" "}
-          <Link href="/ui-lab/dashboard">offer dashboard</Link>.
+          set. Dev-only; gated by FL_UI_LAB. The offer-dashboard mock and its
+          fixture stress mode were decommissioned at Stage A5 — the real
+          screen is Stage B work in the docside repo.
         </p>
-        <div className="lab-row">
-          <Link className="btn btn-primary" href="/ui-lab/dashboard">
-            Open the offer dashboard
-          </Link>
-          <Link className="btn btn-outline" href="/ui-lab/dashboard?data=fixtures">
-            Dashboard · fixture stress mode
-          </Link>
-        </div>
 
         <section className="lab-section">
           <h2>Tokens</h2>
