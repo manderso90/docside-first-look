@@ -247,7 +247,7 @@ function OpenChannel({
               <span className="text-[13px] text-ink-3">Saving your recording…</span>
             ) : null}
             {audioState === "done" ? (
-              <span className="text-[13px] font-medium text-success-deep">
+              <span className="text-[13px] font-medium text-success">
                 Recording saved — Morris will hear it.
               </span>
             ) : null}

@@ -24,8 +24,14 @@
   --color-ink: #161616;
   --color-ink-2: #2d2d2b;
   --color-ink-3: #434341;
+  /* softer muted-ink step from the decided UI vocabulary (docs/PROMOTION.md
+     §A1) — a NEW token; --color-ink-3 is left untouched mid-cohort. */
+  --color-ink-soft: #6d6d69;
   --color-line: #c7c7c7;
   --color-line-2: #e0dfd8;
+  /* softer hairline from the decided UI vocabulary (fence "--line"; note the
+     register's crossed naming — fence --line-2 equals --color-line). */
+  --color-line-soft: #dcdbd4;
 
   /* state families (v3; amber/violet/success tints provisional per palette board) */
   --color-verified: #115073;
@@ -40,7 +46,11 @@
   --color-muted: #868682;
   --color-muted-soft: #ecece8;
   --color-muted-line: #cac9c2;
-  --color-success-deep: #3f7a2e;
+  /* success ramp realigned at promotion (docs/PROMOTION.md §A1): the old
+     --color-success-deep value is semantically the base step; the true deep
+     step (#35682c) comes from the decided UI vocabulary. */
+  --color-success: #3f7a2e;
+  --color-success-deep: #35682c;
   --color-success-soft: #e8f4e2;
   --color-success-line: #b7dca9;
   --color-conflict: #863c28;
@@ -57,6 +67,8 @@
   --radius-control: 5.5px;
   --shadow-card:
     0 1px 2px rgba(14, 39, 53, 0.05), 0 4px 16px rgba(14, 39, 53, 0.06);
+  --shadow-pop:
+    0 3px 8px rgba(14, 39, 53, 0.08), 0 14px 36px rgba(14, 39, 53, 0.14);
 
   /* motion (v3 ease; honor prefers-reduced-motion at usage sites) */
   --ease-calm: cubic-bezier(0.16, 1, 0.3, 1);
