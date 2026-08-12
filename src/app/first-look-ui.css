@@ -297,7 +297,9 @@
 
 .chip.warn {
   background: var(--color-attention-soft);
-  color: var(--color-attention);
+  /* attention-deep since Stage A3/A4: the base attention tone fails 4.5:1
+     on the soft tint (docs/PROMOTION.md contrast gate). */
+  color: var(--color-attention-deep);
 }
 
 .chip.flat {
@@ -561,7 +563,9 @@
 .btn-ghost {
   background: transparent;
   border: 1px solid transparent;
-  color: var(--color-ink-soft);
+  /* ink-3, not ink-soft: ghost text at 4.39:1 fails the gate on paper
+     (docs/PROMOTION.md §A4); ink-3 passes at 8.4:1 and stays quiet. */
+  color: var(--color-ink-3);
 }
 
 .btn-ghost:hover:not(:disabled) {
@@ -663,3 +667,156 @@
   color: var(--color-ink);
 }
 
+
+/* ===================== thank-you (Stage A3) ======================== */
+/* Ported from the exploration's screen 3: drawn check + preview pass. */
+
+.ty-check {
+  width: 84px;
+  height: 84px;
+  margin: 0 auto;
+  display: block;
+}
+
+.ty-check .ring {
+  fill: none;
+  stroke: var(--color-success);
+  stroke-width: 4;
+  stroke-linecap: round;
+  stroke-dasharray: 264;
+  stroke-dashoffset: 264;
+  animation: draw 0.7s cubic-bezier(0.65, 0, 0.35, 1) 0.15s forwards;
+}
+
+.ty-check .mark {
+  fill: none;
+  stroke: var(--color-success);
+  stroke-width: 6;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-dasharray: 60;
+  stroke-dashoffset: 60;
+  animation: draw 0.4s cubic-bezier(0.65, 0, 0.35, 1) 0.75s forwards;
+}
+
+@keyframes draw {
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ty-check .ring,
+  .ty-check .mark {
+    stroke-dashoffset: 0;
+  }
+}
+
+.pass-scene {
+  perspective: 900px;
+  margin-top: 30px;
+  display: flex;
+  justify-content: center;
+}
+
+.pass {
+  width: 372px;
+  max-width: 100%;
+  border-radius: 18px;
+  text-align: left;
+  color: #f0f6ff;
+  background:
+    radial-gradient(120% 90% at 85% -10%, rgba(255, 255, 255, 0.16), transparent 55%),
+    linear-gradient(135deg, var(--color-midnight-slate) 0%, var(--color-deep-ocean) 100%);
+  box-shadow: var(--shadow-pop);
+  padding: 24px 26px 22px;
+  position: relative;
+  overflow: hidden;
+  transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.pass:hover {
+  transform: rotateX(4deg) rotateY(-5deg) translateY(-3px);
+}
+
+.pass::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: repeating-linear-gradient(-45deg, rgba(255, 255, 255, 0.045) 0 2px, transparent 2px 9px);
+}
+
+.pass-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.pass-brand {
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: rgba(240, 246, 255, 0.92);
+}
+
+.pass-logo {
+  width: 26px;
+  height: 26px;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.16);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.pass-no {
+  font-family: var(--font-mono);
+  font-size: 42px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  margin-top: 26px;
+  line-height: 1;
+}
+
+.pass-no small {
+  font-size: 15px;
+  font-weight: 500;
+  opacity: 0.7;
+  letter-spacing: 0.1em;
+  vertical-align: 14px;
+  margin-right: 6px;
+}
+
+.pass-role {
+  margin-top: 6px;
+  font-size: 13px;
+  color: rgba(240, 246, 255, 0.85);
+}
+
+.pass-rule {
+  margin: 20px 0 14px;
+  border: 0;
+  border-top: 1px dashed rgba(240, 246, 255, 0.35);
+}
+
+.pass-meta {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px 16px;
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  letter-spacing: 0.06em;
+}
+
+.pass-meta .k {
+  color: rgba(240, 246, 255, 0.55);
+  text-transform: uppercase;
+}
+
+.pass-meta .v {
+  color: #ffffff;
+  margin-top: 2px;
+}

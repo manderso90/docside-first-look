@@ -7,7 +7,7 @@ import {
   DEBRIEF_PARTS,
   type DebriefPart,
 } from "@/lib/debrief";
-import { TextArea, QuietLinkButton, ErrorNote, PrimaryButton } from "@/components/ui";
+import { TextArea, ErrorNote, PrimaryButton } from "@/components/ui";
 import { SubmitButton } from "@/components/submit-button";
 import { beacon } from "@/lib/beacon";
 import { saveDebriefPart, type DebriefSaveState } from "./actions";
@@ -51,36 +51,52 @@ export function DebriefStepper({
 
   const spec = DEBRIEF_PARTS.find((p) => p.part === current)!;
 
+  // Stage A3 re-skin (docs/PROMOTION.md): the exploration's survey-card —
+  // progress fill on the top edge, serif 23px question, choice cards, ghost
+  // Back. Behavior, wording, and the actions/store contract are UNCHANGED.
   return (
-    <div className="rounded-card border border-line bg-surface p-6 shadow-card sm:p-8">
-      <div className="flex items-baseline justify-between gap-4">
-        <p className="label-caps text-deep-ocean">{spec.label}</p>
-        <p className="text-[12px] text-ink-3">{current} of 8</p>
+    <div className="relative overflow-hidden rounded-card border border-line-soft bg-surface shadow-card">
+      <div aria-hidden="true" className="absolute inset-x-0 top-0 h-1 bg-surface-2">
+        <div
+          className="h-full bg-gradient-to-r from-deep-ocean to-midnight-slate transition-[width] duration-500 ease-[var(--ease-calm)]"
+          style={{ width: `${(current / 8) * 100}%` }}
+        />
       </div>
 
-      <h2 className="mt-3 font-display text-[20px] font-semibold leading-snug text-ink">
-        {spec.question}
-      </h2>
-
-      <form action={formAction} className="mt-5" key={current}>
-        <input type="hidden" name="part" value={spec.part} />
-        <PartBody
-          spec={spec}
-          prior={answers[spec.part]}
-          scheduleUrl={scheduleUrl}
-        />
-        {state.error ? <ErrorNote>{state.error}</ErrorNote> : null}
-        <div className="mt-6 flex items-center justify-between">
-          {current > 1 ? (
-            <QuietLinkButton type="button" onClick={() => setCurrent(current - 1)}>
-              Back
-            </QuietLinkButton>
-          ) : (
-            <span />
-          )}
-          <SubmitButton>{current === 8 ? "Finish" : "Continue"}</SubmitButton>
+      <div className="p-6 sm:p-8">
+        <div className="flex items-baseline justify-between gap-4">
+          <p className="label-caps text-deep-ocean">{spec.label}</p>
+          <p className="font-mono text-[11.5px] text-ink-soft">{current} of 8</p>
         </div>
-      </form>
+
+        <h2 className="mt-3.5 font-display text-[23px] font-semibold leading-[1.3] tracking-[-0.01em] text-balance text-ink">
+          {spec.question}
+        </h2>
+
+        <form action={formAction} className="mt-5" key={current}>
+          <input type="hidden" name="part" value={spec.part} />
+          <PartBody
+            spec={spec}
+            prior={answers[spec.part]}
+            scheduleUrl={scheduleUrl}
+          />
+          {state.error ? <ErrorNote>{state.error}</ErrorNote> : null}
+          <div className="mt-6 flex items-center justify-between">
+            {current > 1 ? (
+              <button
+                type="button"
+                className="btn btn-ghost"
+                onClick={() => setCurrent(current - 1)}
+              >
+                Back
+              </button>
+            ) : (
+              <span />
+            )}
+            <SubmitButton>{current === 8 ? "Finish" : "Continue"}</SubmitButton>
+          </div>
+        </form>
+      </div>
     </div>
   );
 }
@@ -114,7 +130,7 @@ function PartBody({
         {spec.options.map((option) => (
           <label
             key={option}
-            className="flex cursor-pointer items-center gap-3 rounded-control border border-line bg-surface px-3.5 py-2.5 text-[14px] text-ink-2 transition-colors has-checked:border-verified-line has-checked:bg-verified-soft has-checked:text-ink"
+            className="flex cursor-pointer items-center gap-3.5 rounded-[12px] border-[1.5px] border-line-soft bg-surface px-4 py-3.5 text-[14px] font-medium text-ink-2 transition-[border-color,background-color] duration-150 hover:bg-surface-2 has-checked:border-deep-ocean has-checked:bg-ocean-50 has-checked:font-semibold has-checked:text-ink has-checked:shadow-[0_0_0_1px_var(--color-deep-ocean)]"
           >
             <input
               type="radio"
@@ -217,7 +233,7 @@ function OpenChannel({
       />
 
       {audioState !== "unavailable" ? (
-        <div className="rounded-control border border-line-2 bg-surface-2 p-4">
+        <div className="rounded-[12px] border border-line-soft bg-surface-2 p-4">
           <p className="text-[13px] text-ink-2">
             Prefer to say it out loud? {AUDIO_CONSENT_COPY}
           </p>

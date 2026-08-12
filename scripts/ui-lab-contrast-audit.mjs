@@ -58,7 +58,7 @@ function ratio(fg, bg) {
 // [label, fg token, bg token] — bg "#ffffff"-style literals allowed.
 const PAIRS = [
   ["chip.good", "--color-success-deep", "--color-success-soft"],
-  ["chip.warn", "--color-attention", "--color-attention-soft"],
+  ["chip.warn", "--color-attention-deep", "--color-attention-soft"],
   ["chip.flat", "--color-ink-2", "--color-surface-2"],
   ["tierbadge.success", "--color-success-deep", "--color-success-soft"],
   ["tierbadge.primary", "--color-deep-ocean", "--color-ocean-50"],
@@ -67,12 +67,19 @@ const PAIRS = [
   ["srcchip:hover", "--color-deep-ocean", "--color-ocean-200"],
   ["btn-primary", "#ffffff", "--color-deep-ocean"],
   ["btn-outline", "--color-ink-2", "--color-surface"],
-  ["btn-ghost", "--color-ink-soft", "--color-paper"],
+  ["btn-ghost", "--color-ink-3", "--color-paper"],
   ["muted caption (--ink-3 on card)", "--color-ink-soft", "--color-surface"],
   ["subline (--ink-2 on canvas)", "--color-ink-2", "--color-paper"],
   ["leadmark", "--color-success-deep", "--color-surface"],
   ["term value (--ink on card)", "--color-ink", "--color-surface"],
   ["zebra value (--ink on card-2)", "--color-ink", "--color-surface-2"],
+  // Stage A3 shell pairings (docs/PROMOTION.md gate 5)
+  ["debrief choice label", "--color-ink-2", "--color-surface"],
+  ["debrief choice checked", "--color-ink", "--color-ocean-50"],
+  ["debrief count (ink-soft on card)", "--color-ink-soft", "--color-surface"],
+  ["thank-you statusline (ink-3 on paper)", "--color-ink-3", "--color-paper"],
+  ["pass body text", "#f0f6ff", "--color-deep-ocean"],
+  ["screen title (deep-ocean on paper)", "--color-deep-ocean", "--color-paper"],
 ];
 
 let failures = 0;

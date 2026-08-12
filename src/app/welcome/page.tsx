@@ -1,5 +1,6 @@
 import { requireStage } from "@/lib/flow";
 import { Shell, ScreenTitle } from "@/components/shell";
+import { IconCheck } from "@/components/first-look-ui/icons";
 import { getStore } from "@/lib/store";
 import { beginPreview } from "./actions";
 import { SubmitButton } from "@/components/submit-button";
@@ -59,9 +60,9 @@ function Expectation({ children }: { children: React.ReactNode }) {
     <li className="flex items-center gap-3 text-[14px] text-ink-2">
       <span
         aria-hidden="true"
-        className="grid h-5 w-5 place-items-center rounded-full bg-ocean-50 text-[11px] font-bold text-deep-ocean"
+        className="grid h-5 w-5 place-items-center rounded-full bg-ocean-50 text-deep-ocean"
       >
-        ·
+        <IconCheck size={11} strokeWidth={3} />
       </span>
       {children}
     </li>

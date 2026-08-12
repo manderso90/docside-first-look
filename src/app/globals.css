@@ -43,6 +43,9 @@
   --color-verified-soft: #e5f1f7;
   --color-verified-line: #aed3ea;
   --color-attention: #a0701a;
+  /* text-on-soft step added at Stage A3/A4 (docs/PROMOTION.md): #a0701a on
+     the soft tint is 3.83:1; this passes at 5.33:1 and stays warm. */
+  --color-attention-deep: #835b14;
   --color-attention-soft: #f8f0dd;
   --color-attention-line: #e7d2a4;
   --color-corrected: #54459b;
@@ -83,8 +86,10 @@ body {
   background: var(--color-paper);
   color: var(--color-ink);
   -webkit-font-smoothing: antialiased;
-  font-size: 14px;
-  line-height: 1.45;
+  /* 14.5/1.5 since Stage A3 (docs/PROMOTION.md) — the vocabulary's reading
+     register; was 14/1.45. */
+  font-size: 14.5px;
+  line-height: 1.5;
 }
 
 :focus-visible {

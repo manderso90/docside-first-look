@@ -19,8 +19,17 @@ export function NextSteps() {
     return <p className="text-[14px] font-medium text-ink">{message}</p>;
   }
 
+  // Stage A3: the exploration's primary → outline → ghost ladder, centered.
+  // Equal-weight rule kept in substance: all three remain plain one-click
+  // choices with no default and no persuasion copy.
+  const VARIANT: Record<NextStepChoice, string> = {
+    own_docs: "btn-primary",
+    next_round: "btn-outline",
+    finished: "btn-ghost",
+  };
+
   return (
-    <div className="flex flex-col gap-2.5 sm:flex-row">
+    <div className="flex flex-col justify-center gap-2.5 sm:flex-row">
       {CHOICES.map((choice) => (
         <button
           key={choice.id}
@@ -31,7 +40,7 @@ export function NextSteps() {
               setMessage(await chooseNextStep(choice.id));
             })
           }
-          className="rounded-control border border-line bg-surface px-4 py-2.5 text-[13.5px] font-medium text-ink-2 transition-colors hover:border-ocean-200 hover:bg-ocean-50 hover:text-deep-ocean disabled:cursor-not-allowed disabled:text-muted"
+          className={`btn ${VARIANT[choice.id]}`}
         >
           {choice.label}
         </button>
