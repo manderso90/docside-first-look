@@ -13,7 +13,32 @@ import { defineConfig, devices } from "@playwright/test";
  *    fallback assertions (the BRIEF §5.3 "never dead-ends" AC).
  *  - mobile-375 (4382): env inherited → real player; also writes the 375px
  *    visual-pass screenshots to test-results/screens-375/.
+ *  - handoff-interstitial (4383): APP_HANDOFF_URL points nowhere on purpose.
+ *  - events-store (4384): OPT-IN, and the only one on a real database — see
+ *    the storage-project block below.
  */
+
+/**
+ * Opt-in storage project (events-store.spec.ts). Every other server here
+ * forces the per-instance memory store, which can accept an event but cannot
+ * prove it was written. Set both vars — pointing at a LOCAL Supabase, never
+ * the production project — and the fourth server boots on the real
+ * SupabaseStore so the write path can be asserted against real Postgres:
+ *
+ *   FIRST_LOOK_LOCAL_SUPABASE_URL=http://127.0.0.1:54321 \
+ *   FIRST_LOOK_LOCAL_SUPABASE_SERVICE_ROLE_KEY=<local demo key> \
+ *     pnpm test:e2e --project=events-store
+ *
+ * Unset (the default), neither the project nor its server exists, so the
+ * suite runs exactly as it did before.
+ */
+const STORE_URL = process.env.FIRST_LOOK_LOCAL_SUPABASE_URL;
+const STORE_KEY = process.env.FIRST_LOOK_LOCAL_SUPABASE_SERVICE_ROLE_KEY;
+const storeProjectEnabled = Boolean(STORE_URL && STORE_KEY);
+
+/** Specs that belong to a dedicated project, never to desktop/mobile. */
+const DEDICATED_SPECS = /(workspace-interstitial|events-store)\.spec\.ts/;
+
 export default defineConfig({
   testDir: "./tests/e2e",
   testMatch: /.*\.spec\.ts/,
@@ -32,7 +57,7 @@ export default defineConfig({
   projects: [
     {
       name: "desktop",
-      testIgnore: /workspace-interstitial\.spec\.ts/,
+      testIgnore: DEDICATED_SPECS,
       use: {
         ...devices["Desktop Chrome"],
         baseURL: "http://localhost:4381",
@@ -44,7 +69,7 @@ export default defineConfig({
     },
     {
       name: "mobile-375",
-      testIgnore: /workspace-interstitial\.spec\.ts/,
+      testIgnore: DEDICATED_SPECS,
       use: {
         browserName: "chromium",
         viewport: { width: 375, height: 667 },
@@ -65,6 +90,21 @@ export default defineConfig({
         baseURL: "http://localhost:4383",
       },
     },
+    // Opt-in only (see STORE_URL above): the real SupabaseStore against a
+    // local Supabase, so the event's storage can be asserted rather than
+    // inferred from a 200.
+    ...(storeProjectEnabled
+      ? [
+          {
+            name: "events-store",
+            testMatch: /events-store\.spec\.ts/,
+            use: {
+              ...devices["Desktop Chrome"],
+              baseURL: "http://localhost:4384",
+            },
+          },
+        ]
+      : []),
   ],
   webServer: [
     {
@@ -123,5 +163,26 @@ export default defineConfig({
         FIRST_LOOK_PROVISION_SECRET: "e2e-synthetic-secret",
       },
     },
+    ...(storeProjectEnabled
+      ? [
+          {
+            command: "pnpm dev --port 4384",
+            url: "http://localhost:4384",
+            reuseExistingServer: false,
+            timeout: 120_000,
+            env: {
+              // The ONLY server here that runs the production store class.
+              // events-store.spec.ts refuses a non-loopback URL.
+              SUPABASE_URL: STORE_URL!,
+              SUPABASE_SERVICE_ROLE_KEY: STORE_KEY!,
+              NEXT_DIST_DIR: ".next-e2e-store",
+              FOUNDER_VIDEO_URL: "",
+              FOUNDER_VIDEO_CAPTIONS_URL: "",
+              SCHEDULE_URL: "https://schedule.example.invalid/morris",
+              ALLOWED_EVENT_ORIGIN: "https://app.docside.ai",
+            },
+          },
+        ]
+      : []),
   ],
 });
