@@ -35,6 +35,21 @@ export const EVENT_PROPERTIES: Record<string, z.ZodObject<z.ZodRawShape>> = {
   video_skipped: z.object({ at_pct: z.number().min(0).max(100) }),
   scenario_viewed: z.object({}),
   workspace_launched: z.object({}),
+  /**
+   * The agent opened "Preview what the seller will see" in the Docside app and
+   * the seller-facing report rendered (app-originated, 2026-08-20).
+   *
+   * Added for the corrected First Look journey: the 2026-08-20 smoke test
+   * ended with "I do not know what the seller received", so the app grew a
+   * preview step before sharing. This is the research signal for whether
+   * participants use it.
+   *
+   * NOT a seller view: no share exists on this path, no token is minted and
+   * the app never calls log_share_view. Payload is empty — the property and
+   * the agent are already implied by the session, and adding either would put
+   * identifiers in telemetry for no analytic gain.
+   */
+  seller_preview_opened: z.object({}),
   mission_started: z.object({ mission }),
   mission_completed: z.object({
     mission,

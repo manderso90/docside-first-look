@@ -76,6 +76,30 @@ test("app-shaped event: cookie auth, no stage (server-derived), CORS on the resp
   expect(res.headers()["access-control-allow-credentials"]).toBe("true");
 });
 
+test("seller_preview_opened is accepted from the app beacon (2026-08-20)", async ({
+  request,
+}) => {
+  // The Docside app posts this when the agent opens "Preview what the seller
+  // will see" and the report renders. Without this allowlist entry the route
+  // returns 400 and the beacon — fire-and-forget by design — drops it
+  // silently, so the corrected journey would look like nobody previewed.
+  const enter = await request.get(DEV_INVITE);
+  expect(enter.ok()).toBe(true);
+
+  const res = await request.post(EVENTS, {
+    headers: { origin: ALLOWED_ORIGIN },
+    data: {
+      // Beacon shape: no stage (the route derives it from the session row),
+      // and an empty payload — a seller preview carries no identifiers.
+      event: "seller_preview_opened",
+      ts_client: new Date().toISOString(),
+      properties: {},
+    },
+  });
+  expect(res.status()).toBe(200);
+  expect(await res.json()).toEqual({ ok: true });
+});
+
 test("unknown event and off-allowlist shape are rejected (§10 test 4)", async ({
   request,
 }) => {
