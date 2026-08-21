@@ -37,7 +37,8 @@
     ".next-e2e-mobile/types/**/*.ts",
     ".next-prod-shots/types/**/*.ts",
     ".next/types/**/*.ts",
-    "next-env.d.ts"
+    "next-env.d.ts",
+    ".next-e2e-store/types/**/*.ts"
   ],
   "exclude": [
     "node_modules",
