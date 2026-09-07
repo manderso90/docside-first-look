@@ -1,5 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getSessionContext } from "@/lib/session";
+import {
+  LINK_INACTIVE_PATH,
+  expireSessionCookie,
+  resolveSession,
+} from "@/lib/session";
 import { getStore } from "@/lib/store";
 import { stageIndex, stagePath } from "@/lib/stages";
 
@@ -23,16 +27,23 @@ export async function GET(request: NextRequest) {
   const to = (path: string) =>
     NextResponse.redirect(new URL(path, request.url));
 
-  const ctx = await getSessionContext();
-  if (!ctx) return to("/link-inactive");
+  const resolved = await resolveSession();
+  if (!resolved.ok) {
+    // Route handlers can expire the cookie themselves — no hop needed.
+    const response = to(LINK_INACTIVE_PATH);
+    response.headers.set("Cache-Control", "no-store");
+    if (resolved.clearCookie) expireSessionCookie(response);
+    return response;
+  }
+  const { session } = resolved.ctx;
 
-  const reached = stageIndex(ctx.session.lastStage);
+  const reached = stageIndex(session.lastStage);
   if (reached < stageIndex("mission_1")) {
-    return to(stagePath(ctx.session.lastStage));
+    return to(stagePath(session.lastStage));
   }
   if (reached < stageIndex("debrief")) {
-    await getStore().advanceStage(ctx.session.id, "debrief");
+    await getStore().advanceStage(session.id, "debrief");
     return to(stagePath("debrief"));
   }
-  return to(stagePath(ctx.session.lastStage));
+  return to(stagePath(session.lastStage));
 }

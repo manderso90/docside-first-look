@@ -80,6 +80,21 @@ export interface InviteLookup {
   participant?: Participant;
 }
 
+/**
+ * The one definition of "expired" for an invitation. The invite exchange
+ * (`lookupInvite`) and resumed-session authorization (`resolveSession`) both
+ * call this so there is exactly one expiry rule: an invite is expired when it
+ * carries an `expiresAt` that is strictly before `now`. An invite whose
+ * `expiresAt` equals `now` is NOT yet expired (the exchange path's original
+ * `<` comparison, preserved verbatim); `null` never expires.
+ */
+export function inviteExpired(
+  invite: Pick<Invite, "expiresAt">,
+  now: Date = new Date(),
+): boolean {
+  return !!invite.expiresAt && new Date(invite.expiresAt) < now;
+}
+
 export interface FirstLookStore {
   lookupInvite(code: string): Promise<InviteLookup>;
   getInviteById(inviteId: string): Promise<Invite | null>;

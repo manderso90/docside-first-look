@@ -77,6 +77,14 @@ Moderated Zoom sessions with the first 2–3 agents (think-aloud, screen share) 
 
 > **Observe → correct → release → measure → interview**
 
+## Security release — resumed-session invitation revalidation (built locally 2026-09-06; not yet merged or deployed)
+
+**Root cause.** `getSessionContext()` authorized a resumed request on the mere existence of the `sessions` row; `invites.revoked_at` / `expires_at` were only ever read at the `/[code]` exchange. A browser holding `fl_session` kept full shell access — including the `/workspace` provision + mint — for the cookie's 14-day life after `scripts/revoke-invite.mjs` ran. The GoTrue ban only protects participants who had already been provisioned. Mandatory gate before the next real cohort (docside `RELEASE-G-PHASE-0-PLAN.md` D7).
+
+**Fix (shell only; no migration, no env change, no app-repo change).** `src/lib/session.ts` `resolveSession()`: cookie shape → session → participant + invitation (by `session.inviteId`) → invitation must belong to the participant, not be revoked, not be expired (`inviteExpired` in `store/types.ts` — the exchange path's exact `expiresAt < now` rule, now shared). Definitive denials (malformed, unknown session/participant/invitation, mismatch, revoked, expired) expire the cookie and land on `/link-inactive`: route handlers directly, pages/actions via the new lookup-free `/session-ended` hop (Server Components cannot modify cookies). Transient store errors deny the request but keep the cookie. `/[code]` with an invalid/revoked/expired code clears an existing cookie only when that cookie is itself definitively dead — never an unrelated valid session. The security boundary is the per-request server check; clearing is hygiene.
+
+**Verification.** `tests/e2e/revocation.spec.ts` (new `revocation` Playwright project, port 4385, memory store + `FL_E2E_HOOKS=1` fixture hook — dead code in production builds) and the opt-in `tests/e2e/revocation-store.spec.ts` (loopback Supabase, production store class). Proven to fail against the pre-fix implementation. Production proof (founder-authorised cohort-99 QA participant, rows kept revoked) is a later phase.
+
 ## Open questions
 
 Tracked in `docs/BRIEF.md` §13:

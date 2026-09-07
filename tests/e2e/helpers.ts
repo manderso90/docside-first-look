@@ -7,6 +7,16 @@ export const DEV_INVITE = "/dev-preview-morris";
 export const REVOKED_INVITE = "/dev-revoked";
 export const PARTICIPANT_NAME = "Angela";
 
+/** The second synthetic participant's invites (revocation.spec.ts; mutated
+ * only through the dev-gated hook route on the `revocation` project). */
+export const SECOND_PARTICIPANT_NAME = "Noor";
+export const REVOCABLE_INVITE = "/dev-revocable";
+export const EXPIRING_INVITE = "/dev-expiring";
+export const EXPIRED_INVITE = "/dev-expired";
+
+/** Mirrors SESSION_COOKIE in src/lib/session.ts (server-only, so not importable here). */
+export const SESSION_COOKIE = "fl_session";
+
 /**
  * The 375px acceptance rule: no screen may scroll horizontally. A 1px
  * tolerance absorbs scrollbar rounding differences across platforms.

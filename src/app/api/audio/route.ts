@@ -3,7 +3,7 @@ import { mkdir, writeFile } from "fs/promises";
 import { join } from "path";
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
-import { getSessionContext } from "@/lib/session";
+import { expireSessionCookie, resolveSession } from "@/lib/session";
 import { getStore } from "@/lib/store";
 import { recordEvent } from "@/lib/record-event";
 import { AUDIO_MAX_SECONDS } from "@/lib/debrief";
@@ -17,8 +17,16 @@ const MAX_BYTES = 15 * 1024 * 1024;
  * when Supabase isn't configured). Links via survey_responses.audio_path.
  */
 export async function POST(request: NextRequest) {
-  const ctx = await getSessionContext();
-  if (!ctx) return NextResponse.json({ error: "no session" }, { status: 401 });
+  const resolved = await resolveSession();
+  if (!resolved.ok) {
+    // Same 401 shape as always; a definitively dead cookie is expired on
+    // the way out (a transient store error keeps it).
+    const response = NextResponse.json({ error: "no session" }, { status: 401 });
+    response.headers.set("Cache-Control", "no-store");
+    if (resolved.clearCookie) expireSessionCookie(response);
+    return response;
+  }
+  const ctx = resolved.ctx;
 
   const body = Buffer.from(await request.arrayBuffer());
   if (body.length === 0 || body.length > MAX_BYTES) {

@@ -1,13 +1,14 @@
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 import { stageIndex, type Stage } from "@/lib/stages";
-import type {
-  EventRecord,
-  FirstLookStore,
-  Invite,
-  InviteLookup,
-  Participant,
-  Session,
-  SurveyResponse,
+import {
+  inviteExpired,
+  type EventRecord,
+  type FirstLookStore,
+  type Invite,
+  type InviteLookup,
+  type Participant,
+  type Session,
+  type SurveyResponse,
 } from "./types";
 
 /**
@@ -118,7 +119,8 @@ export class SupabaseStore implements FirstLookStore {
     const invite = toInvite(inviteRow);
     const participant = toParticipant(participantRow);
     if (invite.revokedAt) return { status: "revoked", invite, participant };
-    if (invite.expiresAt && new Date(invite.expiresAt) < new Date()) {
+    // Same rule as resumed-session authorization (types.ts inviteExpired).
+    if (inviteExpired(invite)) {
       return { status: "expired", invite, participant };
     }
     return { status: "ok", invite, participant };
