@@ -36,8 +36,20 @@ const STORE_URL = process.env.FIRST_LOOK_LOCAL_SUPABASE_URL;
 const STORE_KEY = process.env.FIRST_LOOK_LOCAL_SUPABASE_SERVICE_ROLE_KEY;
 const storeProjectEnabled = Boolean(STORE_URL && STORE_KEY);
 
+// The store specs write participant/invite/session rows. Refuse — loudly,
+// before any server boots — to point them anywhere but loopback.
+if (
+  STORE_URL &&
+  !/^https?:\/\/(127\.0\.0\.1|localhost|\[::1\])(:|\/|$)/.test(STORE_URL)
+) {
+  throw new Error(
+    "FIRST_LOOK_LOCAL_SUPABASE_URL must be a loopback address (a local `supabase start`); refusing to run the store project against a remote database",
+  );
+}
+
 /** Specs that belong to a dedicated project, never to desktop/mobile. */
-const DEDICATED_SPECS = /(workspace-interstitial|events-store)\.spec\.ts/;
+const DEDICATED_SPECS =
+  /(workspace-interstitial|events-store|revocation|revocation-store)\.spec\.ts/;
 
 export default defineConfig({
   testDir: "./tests/e2e",
@@ -92,12 +104,13 @@ export default defineConfig({
     },
     // Opt-in only (see STORE_URL above): the real SupabaseStore against a
     // local Supabase, so the event's storage can be asserted rather than
-    // inferred from a 200.
+    // inferred from a 200 — and so resumed-session revocation is proven
+    // through the production store class (revocation-store.spec.ts).
     ...(storeProjectEnabled
       ? [
           {
             name: "events-store",
-            testMatch: /events-store\.spec\.ts/,
+            testMatch: /(events-store|revocation-store)\.spec\.ts/,
             use: {
               ...devices["Desktop Chrome"],
               baseURL: "http://localhost:4384",
@@ -105,6 +118,18 @@ export default defineConfig({
           },
         ]
       : []),
+    {
+      // Resumed-session revocation (revocation.spec.ts). Its own server
+      // because the spec revokes/expires/faults the memory store through the
+      // dev-gated hook route (FL_E2E_HOOKS=1 — set on this server ONLY), and
+      // that must never disturb the participant the journey spec walks.
+      name: "revocation",
+      testMatch: /revocation\.spec\.ts/,
+      use: {
+        ...devices["Desktop Chrome"],
+        baseURL: "http://localhost:4385",
+      },
+    },
   ],
   webServer: [
     {
@@ -161,6 +186,24 @@ export default defineConfig({
         // interstitial's mint-failure path is exercised with no real app.
         APP_HANDOFF_URL: "http://127.0.0.1:9",
         FIRST_LOOK_PROVISION_SECRET: "e2e-synthetic-secret",
+      },
+    },
+    {
+      command: "pnpm dev --port 4385",
+      url: "http://localhost:4385",
+      reuseExistingServer: false,
+      timeout: 120_000,
+      env: {
+        // Memory store forced (see above). The ONLY server with the fixture
+        // hook enabled; the hook is dead code in production builds anyway
+        // (src/app/api/e2e-hooks/route.ts).
+        SUPABASE_URL: "",
+        SUPABASE_SERVICE_ROLE_KEY: "",
+        NEXT_DIST_DIR: ".next-e2e-revocation",
+        FOUNDER_VIDEO_URL: "",
+        FOUNDER_VIDEO_CAPTIONS_URL: "",
+        SCHEDULE_URL: "https://schedule.example.invalid/morris",
+        FL_E2E_HOOKS: "1",
       },
     },
     ...(storeProjectEnabled

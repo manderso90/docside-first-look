@@ -1,6 +1,13 @@
 import { NextRequest, NextResponse } from "next/server";
 import { stagePath } from "@/lib/stages";
-import { deviceClass, SESSION_COOKIE, sessionCookieOptions } from "@/lib/session";
+import {
+  LINK_INACTIVE_PATH,
+  SESSION_COOKIE,
+  deviceClass,
+  expireSessionCookie,
+  resolveSession,
+  sessionCookieOptions,
+} from "@/lib/session";
 import { getStore } from "@/lib/store";
 import { recordEvent } from "@/lib/record-event";
 
@@ -14,10 +21,12 @@ import { recordEvent } from "@/lib/record-event";
  * /link-inactive with no error styling and no code echoed.
  */
 export async function GET(
-  _request: NextRequest,
+  request: NextRequest,
   context: { params: Promise<{ code: string }> },
 ) {
   const { code } = await context.params;
+  const to = (path: string) =>
+    NextResponse.redirect(new URL(path, request.url), 307);
 
   let store;
   let lookup;
@@ -26,13 +35,17 @@ export async function GET(
     lookup = await store.lookupInvite(code);
   } catch (error) {
     // Store unavailable (e.g. deployed before Phase 5 Supabase wiring) or
-    // lookup failure: degrade to the calm inactive page, never a 500.
+    // lookup failure: degrade to the calm inactive page, never a 500. A
+    // transient failure says nothing about any cookie the browser holds, so
+    // it is left alone.
     console.error("[first-look] invite lookup failed", error);
-    return NextResponse.redirect(new URL("/link-inactive", _request.url));
+    const response = to(LINK_INACTIVE_PATH);
+    response.headers.set("Cache-Control", "no-store");
+    return response;
   }
 
   if (lookup.status !== "ok" || !lookup.invite || !lookup.participant) {
-    return NextResponse.redirect(new URL("/link-inactive", _request.url));
+    return denyCode(to(LINK_INACTIVE_PATH));
   }
 
   const device = await deviceClass();
@@ -58,10 +71,24 @@ export async function GET(
     });
   }
 
-  const response = NextResponse.redirect(
-    new URL(stagePath("welcome"), _request.url),
-    307,
-  );
+  const response = to(stagePath("welcome"));
   response.cookies.set(SESSION_COOKIE, session.id, sessionCookieOptions());
+  return response;
+}
+
+/**
+ * An invalid, revoked or expired CODE says nothing on its own about the
+ * COOKIE the browser already holds — that may be a different participant's
+ * perfectly valid session, and a stale link in an inbox must not sign them
+ * out. So the existing cookie is resolved on its own merits and expired only
+ * when that resolution is itself a definitive denial: malformed, unknown, or
+ * an invitation that is revoked/expired/mismatched (which covers "this cookie
+ * belongs to the very invitation that was just refused"). A valid session,
+ * no cookie, or a transient store error leaves the cookie untouched.
+ */
+async function denyCode(response: NextResponse): Promise<NextResponse> {
+  response.headers.set("Cache-Control", "no-store");
+  const current = await resolveSession();
+  if (!current.ok && current.clearCookie) expireSessionCookie(response);
   return response;
 }

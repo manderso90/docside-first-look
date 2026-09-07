@@ -38,7 +38,8 @@
     ".next-prod-shots/types/**/*.ts",
     ".next/types/**/*.ts",
     "next-env.d.ts",
-    ".next-e2e-store/types/**/*.ts"
+    ".next-e2e-store/types/**/*.ts",
+    ".next-e2e-revocation/types/**/*.ts"
   ],
   "exclude": [
     "node_modules",

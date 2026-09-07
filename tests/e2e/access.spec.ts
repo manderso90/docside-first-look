@@ -54,3 +54,13 @@ test("responses carry the no-referrer and noindex headers", async ({ page }) => 
   expect(response?.headers()["referrer-policy"]).toBe("no-referrer");
   expect(response?.headers()["x-robots-tag"]).toContain("noindex");
 });
+
+test("the e2e fixture hook is absent unless explicitly enabled", async ({ request }) => {
+  // Neither the desktop nor the mobile server sets FL_E2E_HOOKS; only the
+  // dedicated `revocation` server does (playwright.config.ts). Disabled means
+  // 404 for every method — a mutation attempt must not even reach the store.
+  const post = await request.post("/api/e2e-hooks", { data: { action: "reset" } });
+  expect(post.status()).toBe(404);
+  const get = await request.get("/api/e2e-hooks");
+  expect(get.status()).toBe(404);
+});

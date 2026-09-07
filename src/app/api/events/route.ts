@@ -1,6 +1,6 @@
 import { randomUUID } from "crypto";
 import { NextRequest, NextResponse } from "next/server";
-import { getSessionContext } from "@/lib/session";
+import { expireSessionCookie, resolveSession } from "@/lib/session";
 import { getStore } from "@/lib/store";
 import { EVENT_PROPERTIES, eventEnvelopeSchema } from "@/lib/events";
 
@@ -58,8 +58,16 @@ export async function POST(request: NextRequest) {
   const json = (body: unknown, status: number) =>
     NextResponse.json(body, { status, headers: cors });
 
-  const ctx = await getSessionContext();
-  if (!ctx) return json({ error: "no session" }, 401);
+  const resolved = await resolveSession();
+  if (!resolved.ok) {
+    // Same 401 shape as always; a definitively dead cookie is expired on
+    // the way out (a transient store error keeps it).
+    const response = json({ error: "no session" }, 401);
+    response.headers.set("Cache-Control", "no-store");
+    if (resolved.clearCookie) expireSessionCookie(response);
+    return response;
+  }
+  const ctx = resolved.ctx;
 
   let raw: unknown;
   try {

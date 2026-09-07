@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { getSessionContext } from "@/lib/session";
+import { requireSession } from "@/lib/flow";
 import { stageIndex, stagePath } from "@/lib/stages";
 import { Shell, ScreenTitle, Card } from "@/components/shell";
 import { SubmitButton } from "@/components/submit-button";
@@ -24,8 +24,7 @@ export default async function WorkspacePage({
 }: {
   searchParams: Promise<{ retry?: string }>;
 }) {
-  const ctx = await getSessionContext();
-  if (!ctx) redirect("/link-inactive");
+  const ctx = await requireSession();
   const reached = stageIndex(ctx.session.lastStage);
   if (reached < stageIndex("mission_1")) redirect(stagePath(ctx.session.lastStage));
   if (reached > stageIndex("mission_4")) redirect(stagePath(ctx.session.lastStage));

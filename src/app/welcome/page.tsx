@@ -1,7 +1,6 @@
 import { requireStage } from "@/lib/flow";
 import { Shell, ScreenTitle } from "@/components/shell";
 import { IconCheck } from "@/components/first-look-ui/icons";
-import { getStore } from "@/lib/store";
 import { beginPreview } from "./actions";
 import { SubmitButton } from "@/components/submit-button";
 
@@ -10,11 +9,12 @@ import { SubmitButton } from "@/components/submit-button";
  * One action. No account UI, no navigation chrome, no leaks out.
  */
 export default async function WelcomePage() {
-  const { session, participant } = await requireStage("welcome");
+  const { session, participant, invite } = await requireStage("welcome");
   const returning = session.lastStage !== "welcome";
 
-  const invite = await getStore().getInviteById(session.inviteId);
-  const personalNote = invite?.personalNote || null;
+  // The invitation was already loaded (and verified active) by the session
+  // resolution — no second lookup.
+  const personalNote = invite.personalNote || null;
 
   return (
     <Shell>
